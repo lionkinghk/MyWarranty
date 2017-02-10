@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>MyAssets@LionSoft.com</title>
+    <link rel="stylesheet" href="css/jquery.mobile-1.4.5.css"/>
+    <link rel="stylesheet" href="css/jquery.datetimepicker.css"/>
+</head>
+<body>
+<div id="myAssetsPage" data-role="page" style="padding:4px;margin-top:20px;">
+    <div id="categoryHeader" data-role="header">
+        <h6>My Warranty</h6>
+        <a href="#" id="Options" data-icon="gear" data-iconpos="notext" class="ui-btn-left ui-mini">Options</a>
+        <a href="#addCategory" id="Add" data-icon="plus" data-iconpos="notext"
+           class="ui-btn-right ui-mini" data-rel="popup" data-position-to="window"
+           data-transition="pop" data-close-btn="right">Add</a>
+    </div><!-- /header -->
+    <div id="productHeader" data-role="header">
+        <h6 id="category">Category</h6>
+        <a href="#" id="back" data-icon="back" data-iconpos="notext" class="ui-btn-left ui-mini">Back</a>
+        <a href="#addProduct" id="Add" data-icon="plus" data-iconpos="notext"
+           class="ui-btn-right ui-mini" data-rel="popup" data-position-to="window"
+           data-transition="pop" data-close-btn="right">Add</a>
+    </div><!-- /header -->
+    <div>
+        <input type="date" class="form-control" id="appointment">
+    </div>
+    <div data-role="popup" id="addCategory" data-theme="a" class="ui-corner-all"
+         data-close-btn="right" data-rel="back">
+        <div style="padding:10px 20px;">
+            <h3>Please Enter</h3>
+            <img src="" onerror="this.onerror=null;this.src='img/camera-black.svg';" id="newImage"
+                 height="100px" width="100px"/>
+            <label for="text-basic" class="ui-hidden-accessible">Category:</label>
+            <input type="text" name="newCategory" id="newCategory" value="" placeholder="category"
+                   data-theme="a"/>
+            <a href="#"
+               class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b ui-btn-icon-left ui-icon-delete"
+               data-rel="back">Cancel</a>
+            <a href="#" id="insertCategory"
+               class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b ui-btn-icon-left ui-icon-plus">Add</a>
+        </div>
+    </div>
+    <div id="wrapper">
+        <ul id="categoryList" data-role="listview" data-inset="true"
+            class="ui-nodisc-icon ui-alt-icon" data-filter="true">
+        </ul>
+    </div>
+    <div id="busy">Loading...</div>
+
+
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript" src="js/jquery.datetimepicker.min.js"></script>
+    <script type="text/javascript" src="js/jquery.mobile-1.4.5.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
+
+
+</body>
+</html>
