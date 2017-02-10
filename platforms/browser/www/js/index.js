@@ -63,7 +63,7 @@ $(document).ready(function(){
                   };
 
                   function appendToCategories(id, category, imageFile){
-                    $(categoryListID).prepend('<li class="category"><a href="#" class="listProducts" id="cat'+id+'" cid="'+id+'">' +
+                    $(categoryListID).prepend('<li class="category"><a href="#" class="listProducts" id="cat'+id+'" cid="'+id+'" category="'+ category +'">' +
                                              '<img id="img' + id + '" src="' + imageFile + '" onerror="this.onerror=null;this.src=\''+defaultImage+'\';" />' +
                                              category + '</a></li>');
                   };
@@ -121,7 +121,7 @@ $(document).ready(function(){
                   };
 
                   $(categoryListID).on('click','.listProducts',function() {
-                     alert('appointment='+$('#appointment'));
+                     $('#categoryName').html($(this).attr('category'));
                      $('.category').hide();
                      $('#categoryHeader').hide();
                      $('#productHeader').show();
@@ -137,10 +137,16 @@ $(document).ready(function(){
                                     $('.product').remove();
                   });
 
+$( function() {
+    $( "#newPurchase" ).datepicker();
+  } );
+
+$( function() {
+    $( "#newExpiry" ).datepicker();
+  } );
 
 
 
-                  
                   $('#newImage').click(function() {
                                         navigator.camera.getPicture(onSuccess, onFail, { quality: 50,
                                                                     destinationType: Camera.DestinationType.FILE_URI,
