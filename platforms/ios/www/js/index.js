@@ -29,7 +29,7 @@ $(document).ready(function(){
                   function createTables(tx){
                     console.log("Table created start...");
                     tx.executeSql('CREATE TABLE IF NOT EXISTS categories (id integer primary key, category text, imageFile text)');
-                    tx.executeSql('CREATE TABLE IF NOT EXISTS products (id integer primary key, cid integer, name text, vendor text, manufacturer text, product text, model text, price real, purchase text, expiry text, alert integer, imageFile text)');
+                    tx.executeSql('CREATE TABLE IF NOT EXISTS products (id integer primary key, cid integer, name text, vendor text, manufacturer text, product text, model text, price real, purchase text, expiry text, alert integer,serial,note, imageFile text)');
                     tx.executeSql('CREATE TABLE IF NOT EXISTS documents (id integer primary key, pid integer, title text, imageFile text)');
                     console.log("Table created successfully");
                   };
