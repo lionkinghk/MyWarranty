@@ -1,17 +1,29 @@
 $(document).ready(function(){
-                  
-  var myDB;
+
+// contants
   var categoryListID = '#categoryList';
   var productListID = '#productList';
   var busyID = '#busy';
-  var newImageURL;
   var localFolder = 'localImage';
   var defaultImage = 'img/camera-black.svg';
+  var showExpiryID = "showExpiry";
+  var allowAlertID = "allowAlert";
 
+// global variables
+  var myDB;
+  var myLocalStorage;
+  var newImageURL;
+  var showExpiry;
+  var allowAlert;
 
   document.addEventListener("deviceready",onDeviceReady,false);
 
        function onDeviceReady(){
+                // application settings
+                  myLocalStorage = window.localStorage;
+                  setSettings();
+
+                // category list populate
                   myDB = window.sqlitePlugin.openDatabase({name: "myAssets.db", location: 'default'});
                   myDB.transaction(createTables, transactionError);
                   // myDB.transaction(populateTables, transactionError);
@@ -41,13 +53,30 @@ $(document).ready(function(){
                     console.log("Table population successfully");
                   };
 
+function setSettings() {
+                  showExpiry = myLocalStorage.getItem(showExpiryID);
+                  allowAlert = myLocalStorage.getItem(allowAlertID);
+                  $('#showExpiry').val(showExpiry).change();
+                  $('#allowAlert').val(allowAlert).change();
+}
+
+$('#saveSettings').click(function() {
+                    myLocalStorage.setItem(allowAlertID,$('#allowAlert').val());
+                    myLocalStorage.setItem(showExpiryID,$('#showExpiry').val());
+                  showExpiry = myLocalStorage.getItem(showExpiryID);
+                  allowAlert = myLocalStorage.getItem(allowAlertID);
+                  alert('Saved!');
+                  $('#editSettings').popup("close");
+
+});
+
                   function refreshListview(listID) {
                      $(listID).listview('refresh');
                   };
 
                   function getCategories(tx) {
                     console.log("getCategories start...");
-                    var sql = "select id, category, imageFile from categories order by category desc";
+                    var sql = "select id, category, imageFile from categories order by category";
                     tx.executeSql(sql, [], getCategoriesSuccess);
                     console.log("getCategories population successfully");
                   };
@@ -57,7 +86,7 @@ $(document).ready(function(){
                     var len = results.rows.length;
                     for (var i=0; i<len; i++) {
                       var categories = results.rows.item(i);
-                      appendToCategories(categories.id,categories.category,'cdvfile://localhost/persistent' + categories.imageFile);
+                      $(categoryListID).append(formatCategory(categories.id,categories.category,'cdvfile://localhost/persistent' + categories.imageFile));
                     };
                     refreshListview(categoryListID);
                   };
@@ -66,6 +95,12 @@ $(document).ready(function(){
                     $(categoryListID).prepend('<li class="category"><a href="#" class="listProducts" id="cat'+id+'" cid="'+id+'" category="'+ category +'">' +
                                              '<img id="img' + id + '" src="' + imageFile + '" onerror="this.onerror=null;this.src=\''+defaultImage+'\';" />' +
                                              category + '</a></li>');
+                  };
+
+                  function formatCategory(id, category, imageFile){
+                     return '<li class="category"><a href="#" class="listProducts" id="cat'+id+'" cid="'+id+'" category="'+ category +'">' +
+                                             '<img id="img' + id + '" src="' + imageFile + '" onerror="this.onerror=null;this.src=\''+defaultImage+'\';" />' +
+                                             category + '</a></li>';
                   };
 
                   $('#insertCategory').click(function(){
@@ -90,17 +125,25 @@ $(document).ready(function(){
                                                                                      },
                                                                                      transactionError);
                                                               });
-                                             appendToCategories(lastrowid,newCategory,newImage);
+                                             $(categoryListID).prepend(formatCategory(lastrowid,newCategory,newImage));
                                              refreshListview(categoryListID);
                                              $('#newImage').attr('src',defaultImage);
                                              $('#newCategory').val('');
 
-                           });
+                   });
 
                   function getProducts(tx, cid) {
                     console.log("getProducts start...");
-                    var sql = "select id,cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert,imageFile from products where cid = ? order by name desc";
-                    tx.executeSql(sql, [cid], getProductsSuccess);
+                    if (cid == 0)
+                    {
+                      var sql = "select id,cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert,imageFile from products order by name desc";
+                      tx.executeSql(sql, [], getProductsSuccess);
+                    }
+                    else
+                    {
+                      var sql = "select id,cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert,imageFile from products where cid = ? order by name desc";
+                      tx.executeSql(sql, [cid], getProductsSuccess);
+                    }
                     console.log("getProducts population successfully");
                   };
 

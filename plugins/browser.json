@@ -69,6 +69,9 @@
         },
         "cordova-plugin-file": {
             "PACKAGE_NAME": "com.lionsoft.apps"
+        },
+        "cordova-plugin-websql": {
+            "PACKAGE_NAME": "com.lionsoft.apps"
         }
     },
     "dependent_plugins": {

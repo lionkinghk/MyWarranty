@@ -644,7 +644,8 @@ module.exports.metadata =
     "cordova-plugin-statusbar": "2.1.3",
     "cordova-plugin-vibration": "2.1.3",
     "cordova-plugin-whitelist": "1.2.2",
-    "cordova-sqlite-storage": "2.0.2"
+    "cordova-sqlite-storage": "2.0.2",
+    "cordova-plugin-websql": "0.0.10"
 }
 // BOTTOM OF METADATA
 });

@@ -177,5 +177,13 @@
             "CAMERA_USAGE_DESCRIPTION": "your usage message",
             "PHOTOLIBRARY_USAGE_DESCRIPTION": "your usage message"
         }
+    },
+    "cordova-plugin-websql": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-websql"
+        },
+        "is_top_level": true,
+        "variables": {}
     }
 }
