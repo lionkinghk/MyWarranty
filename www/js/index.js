@@ -8,6 +8,7 @@ $(document).ready(function(){
   var defaultImage = 'img/camera-black.svg';
   var showExpiryID = "showExpiry";
   var allowAlertID = "allowAlert";
+  var showExpirySQL = "  and expiry > ";
 
 // global variables
   var myDB;
@@ -41,15 +42,15 @@ $(document).ready(function(){
                   function createTables(tx){
                     console.log("Table created start...");
                     tx.executeSql('CREATE TABLE IF NOT EXISTS categories (id integer primary key, category text, imageFile text)');
-                    tx.executeSql('CREATE TABLE IF NOT EXISTS products (id integer primary key, cid integer, name text, vendor text, manufacturer text, product text, model text, price real, purchase text, expiry text, alert integer,serial,note, imageFile text)');
+                    tx.executeSql('CREATE TABLE IF NOT EXISTS products (id integer primary key, cid integer, name text, vendor text, manufacturer text, product text, model text, price real, purchase text, expiry text, alert text, serial text, note text, imageFile text)');
                     tx.executeSql('CREATE TABLE IF NOT EXISTS documents (id integer primary key, pid integer, title text, imageFile text)');
                     console.log("Table created successfully");
                   };
 
                   function populateTables(tx) {
                     console.log("Table population start...");
-                    tx.executeSql("INSERT INTO products (cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert,imageFile) VALUES (3,'for3-1','vendor','manufacturer','product','model',100.4,'2017-01-02','2019-01-02',0,'img/camera-black.svg')");
-                    tx.executeSql("INSERT INTO products (cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert,imageFile) VALUES (3,'for3-2','vendor2','manufacturer2','product2','model2',102.4,'2005-01-02','2006-01-02',0,'img/camera-black.svg')");
+                    tx.executeSql("INSERT INTO products (cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert, serial, note, imageFile) VALUES (1,'for3-1','vendor','manufacturer','product','model',100.4,'2017-01-02','2019-01-02','on','xxx-yyy-zz','this ok','img/camera-black.svg')");
+                    tx.executeSql("INSERT INTO products (cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert, serial, note, imageFile) VALUES (1,'for3-2','vendor2','manufacturer2','product2','model2',102.4,'2005-01-02','2006-01-02','off','aaa-bbb-cc','this ok','img/camera-black.svg')");
                     console.log("Table population successfully");
                   };
 
@@ -91,12 +92,6 @@ $('#saveSettings').click(function() {
                     refreshListview(categoryListID);
                   };
 
-                  function appendToCategories(id, category, imageFile){
-                    $(categoryListID).prepend('<li class="category"><a href="#" class="listProducts" id="cat'+id+'" cid="'+id+'" category="'+ category +'">' +
-                                             '<img id="img' + id + '" src="' + imageFile + '" onerror="this.onerror=null;this.src=\''+defaultImage+'\';" />' +
-                                             category + '</a></li>');
-                  };
-
                   function formatCategory(id, category, imageFile){
                      return '<li class="category"><a href="#" class="listProducts" id="cat'+id+'" cid="'+id+'" category="'+ category +'">' +
                                              '<img id="img' + id + '" src="' + imageFile + '" onerror="this.onerror=null;this.src=\''+defaultImage+'\';" />' +
@@ -109,7 +104,7 @@ $('#saveSettings').click(function() {
                                              var d = new Date();
                                              var n = d.getTime();
                                              newImageURL = n + ".jpg";
-                                             var lastrowid;
+                                             var lastRowID;
                                              if (newImage != defaultImage)
                                              {
                                                movePic(newImage);
@@ -120,12 +115,12 @@ $('#saveSettings').click(function() {
                                                               transaction.executeSql(executeQuery, [newCategory,newImageFile]
                                                                                      ,
                                                                                      function(tx, result) {
-                                                                                            lastrowid = result.insertId;
-                                                                                            alert('Added id='+ lastrowid +'! Cancel to close.');
+                                                                                            lastRowID = result.insertId;
+                                                                                            alert('Added ' + newCategory + '('+ lastRowID +')! Click [Cancel] to close.');
                                                                                      },
                                                                                      transactionError);
                                                               });
-                                             $(categoryListID).prepend(formatCategory(lastrowid,newCategory,newImage));
+                                             $(categoryListID + ' li:eq(0)').after(formatCategory(lastRowID,newCategory,newImage));
                                              refreshListview(categoryListID);
                                              $('#newImage').attr('src',defaultImage);
                                              $('#newCategory').val('');
@@ -136,12 +131,12 @@ $('#saveSettings').click(function() {
                     console.log("getProducts start...");
                     if (cid == 0)
                     {
-                      var sql = "select id,cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert,imageFile from products order by name desc";
+                      var sql = "select id,cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert,serial,note,imageFile from products where 1 = 1 order by name desc";
                       tx.executeSql(sql, [], getProductsSuccess);
                     }
                     else
                     {
-                      var sql = "select id,cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert,imageFile from products where cid = ? order by name desc";
+                      var sql = "select id,cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert,serial,note,imageFile from products where cid = ? order by name desc";
                       tx.executeSql(sql, [cid], getProductsSuccess);
                     }
                     console.log("getProducts population successfully");
@@ -152,12 +147,12 @@ $('#saveSettings').click(function() {
                     var len = results.rows.length;
                     for (var i=0; i<len; i++) {
                       var products = results.rows.item(i);
-                      appendToProducts(products.id, products.cid,products.name,products.vendor,products.manufacturer,products.product,products.model,products.price,products.purchase,products.expiry,products.alert,'cdvfile://localhost/persistent' + products.imageFile);
+                      appendToProducts(products.id, products.cid,products.name,products.vendor,products.manufacturer,products.product,products.model,products.price,products.purchase,products.expiry,products.alert,products.serial,products.note, 'cdvfile://localhost/persistent' + products.imageFile);
                     };
                     refreshListview(categoryListID);
                   };
                   
-                  function appendToProducts(id, cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert,imageFile){
+                  function appendToProducts(id, cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert,serial,note,imageFile){
                     $(categoryListID).prepend('<li class="product"><a href="#" class="ProductDetails" id="product'+id+'" pid="'+id+'" cid="'+cid+'">' +
                                              '<img id="img' + id + '" src="' + imageFile + '" onerror="this.onerror=null;this.src=\''+defaultImage+'\';" />' +
                                              '<h1>'+name+'</h1><p>'+manufacturer+'</p><p>'+product+ ' ' +model+'</p><p>'+purchase + ' ' + expiry+'</p></a></li>');
@@ -170,8 +165,60 @@ $('#saveSettings').click(function() {
                      $('#productHeader').show();
                      $(busyID).show();
                      var cid = $(this).attr('cid');
+                     $('#newcid').val(cid);
                      myDB.transaction(function(tx){getProducts(tx,cid)}, transactionError);
+                                         if (cid == 0)
+                                         {
+                                            $('#AddProductLink').hide();
+                                         }
+                                         else
+                                         {
+                                            $('#AddProductLink').show();
+                                         }
+
                   });
+
+                  $('#insertProduct').click(function(){
+
+                                             var newcid=$('#newcid').val();
+                                             var newName=$('#newName').val();
+                                             var newVendor=$('#newVendor').val();
+                                             var newManufacturer=$('#newManufacturer').val();
+                                             var newProduct=$('#newProduct').val();
+                                             var newModel=$('#newModel').val();
+                                             var newPrice=$('#newPrice').val();
+                                             var newPurchase=$('#newPurchase').val();
+                                             var newExpiry=$('#newExpiry').val();
+                                             var newAlert=$('#newAlert').val();
+                                             var newSerial=$('#newSerial').val();
+                                             var newNote=$('#newNote').val();
+                                             var newImage=$('#newProductImage').attr('src');
+                                             var d = new Date();
+                                             var n = d.getTime();
+                                             newImageURL = n + ".jpg";
+                                             var lastRowID;
+                                             if (newImage != defaultImage)
+                                             {
+                                               movePic(newImage);
+                                             }
+                                             var newImageFile = '/' + localFolder + '/' + newImageURL;
+                                             myDB.transaction(function(transaction) {
+                                                              var executeQuery = "INSERT INTO products (cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert,serial,note,imageFile) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                                                              transaction.executeSql(executeQuery, [newcid,newName,newVendor,newManufacturer,newProduct,newModel,newPrice,newPurchase,newExpiry,newAlert,newSerial,newNote,newImageFile]
+                                                                                     ,
+                                                                                     function(tx, result) {
+                                                                                            lastRowID = result.insertId;
+                                                                                            alert('Added ' + newName + '('+ lastRowID +')! Click [Cancel] to close.');
+                                                                                     },
+                                                                                     transactionError);
+                                                              });
+                                             appendToProducts(lastRowID, newcid,newName,newVendor,newManufacturer,newProduct,newModel,newPrice,newPurchase,newExpiry,newAlert,newSerial,newNote, 'cdvfile://localhost/persistent' + newImageFile);
+                                             refreshListview(categoryListID);
+                                             $('#newProductImage').attr('src',defaultImage);
+                                             $('#addProductForm').trigger('reset');
+                                             $('#newcid').val(newcid);
+
+                   });
 
                   $('#back').click(function(){
                                     $('#categoryHeader').show();
@@ -188,6 +235,19 @@ $( function() {
     $( "#newExpiry" ).datepicker();
   } );
 
+
+                  $('#newProductImage').click(function() {
+                                        navigator.camera.getPicture(onProductSuccess, onFail, { quality: 50,
+                                                                    destinationType: Camera.DestinationType.FILE_URI,
+                                                                    sourceType : Camera.PictureSourceType.SAVEDPHOTOALBUM,
+                                                                    allowEdit : true,
+                                                                    encodingType: Camera.EncodingType.JPEG,
+                                                                    saveToPhotoAlbum: false
+                                                                    });
+                                        });
+                  function onProductSuccess(imageData) {
+                     $('#newProductImage').attr('src',imageData);
+                   };
 
 
                   $('#newImage').click(function() {
@@ -212,7 +272,7 @@ $( function() {
                   
                   //Callback function when the file system uri has been resolved
                   function resolveOnSuccess(entry){
-                  window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fileSys) {
+                            window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fileSys) {
                                            //The folder is created if doesn't exist
                                            fileSys.root.getDirectory( localFolder,
                                                                      {create:true, exclusive: false},

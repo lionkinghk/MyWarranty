@@ -82,9 +82,11 @@
     <div data-role="popup" id="addProduct" data-theme="a" class="ui-corner-all"
          data-close-btn="right" data-rel="back">
         <div style="padding:5px 5px;">
+            <form id="addProductForm">
             <fieldset class="ui-grid-a">
                 <div class="ui-block-a">
                     <h3>New Product</h3>
+                    <input type="hidden" name="newName" id="newcid" value="" placeholder="cid"/>
                 </div>
                 <div class="ui-block-b">
                     <img src="" onerror="this.onerror=null;this.src='img/camera-black.svg';"
@@ -152,13 +154,13 @@
                        class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b ui-btn-icon-left ui-icon-plus">Add</a>
                 </div>
             </fieldset>
-
+            </form>
         </div>
     </div>
     <div id="wrapper">
         <ul id="categoryList" data-role="listview" data-inset="true"
             class="ui-nodisc-icon ui-alt-icon" data-filter="true">
-            <li class="category"><a href="#" class="listProducts" id="cat0" cid="0" categroy="ALL">
+            <li class="category"><a href="#" class="listProducts" id="cat0" cid="0" category="ALL">
                 <img id="img0" width="80px" src="img/star-black.svg"
                      onerror="this.onerror=null;this.src='img/camera-black.svg';"/>
                 ALL</a></li>
