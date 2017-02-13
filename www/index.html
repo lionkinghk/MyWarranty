@@ -8,24 +8,24 @@
     <link rel="stylesheet" href="css/jquery-ui.min.css"/>
 </head>
 <body>
-<div id="myAssetsPage" data-role="page" style="padding:4px;margin-top:20px;">
+<div id="myWarrantyPage" data-role="page" style="padding:4px;margin-top:20px;">
     <div id="categoryHeader" data-role="header">
         <h3>My Warranty</h3>
-        <a href="#editSettings" id="editSettingsLink" data-icon="gear" data-iconpos="notext"
+        <a href="#editSettingsPopup" id="editSettingsLink" data-icon="gear" data-iconpos="notext"
            class="ui-btn-left ui-mini" data-rel="popup" data-position-to="window"
            data-transition="pop" data-close-btn="right">Options</a>
-        <a href="#addCategory" id="AddCategoryLink" data-icon="plus" data-iconpos="notext"
+        <a href="#addCategoryPopup" id="addCategoryLink" data-icon="plus" data-iconpos="notext"
            class="ui-btn-right ui-mini" data-rel="popup" data-position-to="window"
            data-transition="pop" data-close-btn="right">Add</a>
     </div><!-- /header -->
     <div id="productHeader" data-role="header">
-        <h3 id="categoryName">Category</h3>
-        <a href="#" id="back" data-icon="back" data-iconpos="notext" class="ui-btn-left ui-mini">Back</a>
-        <a href="#addProduct" id="AddProductLink" data-icon="plus" data-iconpos="notext"
+        <h3 id="categoryNameH3">Category</h3>
+        <a href="#" id="backLink" data-icon="back" data-iconpos="notext" class="ui-btn-left ui-mini">Back</a>
+        <a href="#addProductPopup" id="addProductLink" data-icon="plus" data-iconpos="notext"
            class="ui-btn-right ui-mini" data-rel="popup" data-position-to="window"
            data-transition="pop" data-close-btn="right">Add</a>
     </div><!-- /header -->
-    <div data-role="popup" id="editSettings" data-theme="a" class="ui-corner-all"
+    <div id="editSettingsPopup" data-role="popup" data-theme="a" class="ui-corner-all"
          data-close-btn="right" data-rel="back">
 
         <h3>Settings</h3>
@@ -40,7 +40,7 @@
                 Show Expiry:
             </div>
             <div class="ui-block-b">
-                <select name="showExpiry" id="showExpiry" data-role="slider">
+                <select id="showExpirySelect" name="showExpirySelect" data-role="slider">
                     <option value="off">Off</option>
                     <option value="on">On</option>
                 </select>
@@ -49,7 +49,7 @@
                 Alert:
             </div>
             <div class="ui-block-b">
-                <select name="allowAlert" id="allowAlert" data-role="slider">
+                <select id="allowAlertSelect" name="allowAlertSelect" data-role="slider">
                     <option value="off">Off</option>
                     <option value="on">On</option>
                 </select>
@@ -63,118 +63,115 @@
         </fieldset>
 
     </div>
-    <div data-role="popup" id="addCategory" data-theme="a" class="ui-corner-all"
+    <div id="addCategoryPopup" data-role="popup" data-theme="a" class="ui-corner-all"
          data-close-btn="right" data-rel="back">
         <div style="padding:10px 10px;">
             <h3>New Category</h3>
-            <img src="" onerror="this.onerror=null;this.src='img/camera-black.svg';" id="newImage"
+            <img id="newImageSrc" src="" onerror="this.onerror=null;this.src='img/camera-black.svg';"
                  height="100px" width="100px"/>
 
-            <input type="text" name="newCategory" id="newCategory" value="" placeholder="category"
+            <input type="text" name="newCategoryInput" id="newCategoryInput" value="" placeholder="category"
                    data-theme="a"/>
             <a href="#"
                class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b ui-btn-icon-left ui-icon-delete"
                data-rel="back">Cancel</a>
-            <a href="#" id="insertCategory"
+            <a href="#" id="insertCategoryLink"
                class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b ui-btn-icon-left ui-icon-plus">Add</a>
         </div>
     </div>
-    <div data-role="popup" id="addProduct" data-theme="a" class="ui-corner-all"
+    <div id="addProductPopup" data-role="popup" data-theme="a" class="ui-corner-all"
          data-close-btn="right" data-rel="back">
         <div style="padding:5px 5px;">
             <form id="addProductForm">
-            <fieldset class="ui-grid-a">
-                <div class="ui-block-a">
-                    <h3>New Product</h3>
-                    <input type="hidden" name="newName" id="newcid" value="" placeholder="cid"/>
-                </div>
-                <div class="ui-block-b">
-                    <img src="" onerror="this.onerror=null;this.src='img/camera-black.svg';"
-                         id="newProductImage"
-                         height="50px" width="50px"/>
-                </div>
+                <fieldset class="ui-grid-a">
+                    <div class="ui-block-a">
+                        <h3>New Product</h3>
+                        <input type="hidden" name="newCIdInput" id="newCIdInput" value="" placeholder="cid"/>
+                    </div>
+                    <div class="ui-block-b">
+                        <img src="" onerror="this.onerror=null;this.src='img/camera-black.svg';"
+                             id="newProductImage"
+                             height="50px" width="50px"/>
+                    </div>
 
-                <div class="ui-block-a">
-                    <input type="text" name="newName" id="newName" value="" placeholder="Name"
+                    <div class="ui-block-a">
+                        <input id="newNameInput" type="text" name="newNameInput" value="" placeholder="Nick Name"
+                               data-theme="a"/>
+                    </div>
+                    <div class="ui-block-b">
+                        <input id="newPriceInput" type="number" name="newPriceInput" value="" pattern="[0-9.]*"
+                               placeholder="Price" data-theme="a"/>
+                    </div>
+                    <div class="ui-block-a">
+                        <input id="newProductInput" type="text" name="newProductInput" value=""
+                               placeholder="Product" data-theme="a"/>
+                    </div>
+                    <div class="ui-block-b">
+                        <input id="newModelInput" type="text" name="newModelInput" value="" placeholder="Model"
+                               data-theme="a"/>
+                    </div>
+                    <div class="ui-block-a">
+                        <input id="newVendorInput" type="text" name="newVendorInput" value="" placeholder="Vendor"
+                               data-theme="a"/>
+                    </div>
+                    <div class="ui-block-b">
+                        <input id="newManufacturerInput" type="text" name="newManufacturerInput" value=""
+                               placeholder="Manufacturer" data-theme="a"/>
+                    </div>
+                    <div class="ui-block-a">
+                        <input id="newPurchaseInput" type="text" data-role="date" name="newPurchaseInput" value=""
+                               placeholder="Date of Purchase" data-theme="a"/>
+                    </div>
+                    <div class="ui-block-b">
+                        <input id="newExpiryInput" type="text" data-role="date" name="newExpiryInput" value=""
+                               placeholder="Date of Expiry" data-theme="a"/>
+                    </div>
+                    <div class="ui-block-a">
+                        <label for="newAlertSelect">Expiry Alert:</label>
+                    </div>
+                    <div class="ui-block-b">
+                        <select id="newAlertSelect" name="newAlertSelect" data-role="slider" data-mini="true">
+                            <option value="off">No</option>
+                            <option value="on" selected="">Yes</option>
+                        </select>
+                    </div>
+                </fieldset>
+                <div>
+                    <input id="newSerialInput" type="text" name="newSerialInput" value=""
+                           placeholder="Serial Number"
                            data-theme="a"/>
+                    <textarea id="newNoteTextarea" rows="4" name="newNoteTextarea" placeholder="Note"></textarea>
                 </div>
-                <div class="ui-block-b">
-                    <input type="number" name="newPrice" id="newPrice" value="" pattern="[0-9.]*"
-                           placeholder="Price" data-theme="a"/>
-                </div>
-                <div class="ui-block-a">
-                    <input type="text" name="newProduct" id="newProduct" value=""
-                           placeholder="Product" data-theme="a"/>
-                </div>
-                <div class="ui-block-b">
-                    <input type="text" name="newModel" id="newModel" value="" placeholder="Model"
-                           data-theme="a"/>
-                </div>
-                <div class="ui-block-a">
-                    <input type="text" name="newVendor" id="newVendor" value="" placeholder="Vendor"
-                           data-theme="a"/>
-                </div>
-                <div class="ui-block-b">
-                    <input type="text" name="newManufacturer" id="newManufacturer" value=""
-                           placeholder="Manufacturer" data-theme="a"/>
-                </div>
-                <div class="ui-block-a">
-                    <input type="text" data-role="date" name="newPurchase" id="newPurchase" value=""
-                           placeholder="Date of Purchase" data-theme="a"/>
-                </div>
-                <div class="ui-block-b">
-                    <input type="text" data-role="date" name="newExpiry" id="newExpiry" value=""
-                           placeholder="Date of Expiry" data-theme="a"/>
-                </div>
-                <div class="ui-block-a">
-                    <label for="slider-flip-m">Expiry Alert:</label>
-                </div>
-                <div class="ui-block-b">
-                    <select name="newAlert" id="slider-flip-m" data-role="slider" data-mini="true">
-                        <option value="off">No</option>
-                        <option value="on" selected="">Yes</option>
-                    </select>
-                </div>
-            </fieldset>
-            <div>
-                <input type="text" name="newSerial" id="newSerial" value=""
-                       placeholder="Serial Number"
-                       data-theme="a"/>
-                <textarea rows="4" name="newNote" id="newNote" placeholder="Note"></textarea>
-            </div>
-            <fieldset class="ui-grid-a">
-                <div class="ui-block-a">
-                    <a href="#"
-                       class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b ui-btn-icon-left ui-icon-delete"
-                       data-rel="back">Cancel</a>
+                <fieldset class="ui-grid-a">
+                    <div class="ui-block-a">
+                        <a href="#"
+                           class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b ui-btn-icon-left ui-icon-delete"
+                           data-rel="back">Cancel</a>
 
-                </div>
-                <div class="ui-block-b">
-                    <a href="#" id="insertProduct"
-                       class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b ui-btn-icon-left ui-icon-plus">Add</a>
-                </div>
-            </fieldset>
+                    </div>
+                    <div class="ui-block-b">
+                        <a href="#" id="insertProductLink"
+                           class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b ui-btn-icon-left ui-icon-plus">Add</a>
+                    </div>
+                </fieldset>
             </form>
         </div>
     </div>
-    <div id="wrapper">
-        <ul id="categoryList" data-role="listview" data-inset="true"
+    <div id="mainContentDiv">
+        <ul id="categoryListview" data-role="listview" data-inset="true"
             class="ui-nodisc-icon ui-alt-icon" data-filter="true">
             <li class="category"><a href="#" class="listProducts" id="cat0" cid="0" category="ALL">
-                <img id="img0" width="80px" src="img/star-black.svg"
+                <img id="img0" src="img/star-black.svg"
                      onerror="this.onerror=null;this.src='img/camera-black.svg';"/>
                 ALL</a></li>
         </ul>
     </div>
-    <div id="busy">Loading...</div>
-
+    <div id="busyDiv">Loading...</div>
 
     <script type="text/javascript" src="cordova.js"></script>
     <script type="text/javascript" src="js/jquery.js"></script>
     <script type="text/javascript" src="js/jquery-ui.min.js"></script>
     <script type="text/javascript" src="js/jquery.mobile-1.4.5.js"></script>
     <script type="text/javascript" src="js/index.js"></script>
-
-
 </body>
 </html>
