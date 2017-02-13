@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="css/jquery-ui.min.css"/>
 </head>
 <body>
-<div id="myWarrantyPage" data-role="page" style="padding:4px;margin-top:20px;">
+<div id="myAssetsPage" data-role="page" style="padding:4px;margin-top:20px;">
     <div id="categoryHeader" data-role="header">
         <h3>My Warranty</h3>
         <a href="#editSettingsPopup" id="editSettingsLink" data-icon="gear" data-iconpos="notext"
@@ -20,7 +20,8 @@
     </div><!-- /header -->
     <div id="productHeader" data-role="header">
         <h3 id="categoryNameH3">Category</h3>
-        <a href="#" id="backLink" data-icon="back" data-iconpos="notext" class="ui-btn-left ui-mini">Back</a>
+        <a href="#" id="backLink" data-icon="back" data-iconpos="notext"
+           class="ui-btn-left ui-mini">Back</a>
         <a href="#addProductPopup" id="addProductLink" data-icon="plus" data-iconpos="notext"
            class="ui-btn-right ui-mini" data-rel="popup" data-position-to="window"
            data-transition="pop" data-close-btn="right">Add</a>
@@ -57,7 +58,7 @@
             <div class="ui-block-a"><a href="#"
                                        class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b ui-btn-icon-left ui-icon-delete"
                                        data-rel="back">Cancel</a></div>
-            <div class="ui-block-b"><a href="#" id="saveSettings"
+            <div class="ui-block-b"><a href="#" id="saveSettingsLink"
                                        class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b ui-btn-icon-left ui-icon-plus">Save</a>
             </div>
         </fieldset>
@@ -67,10 +68,12 @@
          data-close-btn="right" data-rel="back">
         <div style="padding:10px 10px;">
             <h3>New Category</h3>
-            <img id="newImageSrc" src="" onerror="this.onerror=null;this.src='img/camera-black.svg';"
+            <img id="newImageSrc" src=""
+                 onerror="this.onerror=null;this.src='img/camera-black.svg';"
                  height="100px" width="100px"/>
 
-            <input type="text" name="newCategoryInput" id="newCategoryInput" value="" placeholder="category"
+            <input type="text" name="newCategoryInput" id="newCategoryInput" value=""
+                   placeholder="category"
                    data-theme="a"/>
             <a href="#"
                class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b ui-btn-icon-left ui-icon-delete"
@@ -86,20 +89,23 @@
                 <fieldset class="ui-grid-a">
                     <div class="ui-block-a">
                         <h3>New Product</h3>
-                        <input type="hidden" name="newCIdInput" id="newCIdInput" value="" placeholder="cid"/>
+                        <input type="hidden" name="newCIdInput" id="newCIdInput" value=""
+                               placeholder="cid"/>
                     </div>
                     <div class="ui-block-b">
-                        <img src="" onerror="this.onerror=null;this.src='img/camera-black.svg';"
-                             id="newProductImage"
+                        <img id="newProductImageSrc" src=""
+                             onerror="this.onerror=null;this.src='img/camera-black.svg';"
                              height="50px" width="50px"/>
                     </div>
 
                     <div class="ui-block-a">
-                        <input id="newNameInput" type="text" name="newNameInput" value="" placeholder="Nick Name"
+                        <input id="newNameInput" type="text" name="newNameInput" value=""
+                               placeholder="Nick Name"
                                data-theme="a"/>
                     </div>
                     <div class="ui-block-b">
-                        <input id="newPriceInput" type="number" name="newPriceInput" value="" pattern="[0-9.]*"
+                        <input id="newPriceInput" type="number" name="newPriceInput" value=""
+                               pattern="[0-9.]*"
                                placeholder="Price" data-theme="a"/>
                     </div>
                     <div class="ui-block-a">
@@ -107,30 +113,36 @@
                                placeholder="Product" data-theme="a"/>
                     </div>
                     <div class="ui-block-b">
-                        <input id="newModelInput" type="text" name="newModelInput" value="" placeholder="Model"
+                        <input id="newModelInput" type="text" name="newModelInput" value=""
+                               placeholder="Model"
                                data-theme="a"/>
                     </div>
                     <div class="ui-block-a">
-                        <input id="newVendorInput" type="text" name="newVendorInput" value="" placeholder="Vendor"
+                        <input id="newVendorInput" type="text" name="newVendorInput" value=""
+                               placeholder="Vendor"
                                data-theme="a"/>
                     </div>
                     <div class="ui-block-b">
-                        <input id="newManufacturerInput" type="text" name="newManufacturerInput" value=""
+                        <input id="newManufacturerInput" type="text" name="newManufacturerInput"
+                               value=""
                                placeholder="Manufacturer" data-theme="a"/>
                     </div>
                     <div class="ui-block-a">
-                        <input id="newPurchaseInput" type="text" data-role="date" name="newPurchaseInput" value=""
+                        <input id="newPurchaseInput" type="text" data-role="date"
+                               name="newPurchaseInput" value=""
                                placeholder="Date of Purchase" data-theme="a"/>
                     </div>
                     <div class="ui-block-b">
-                        <input id="newExpiryInput" type="text" data-role="date" name="newExpiryInput" value=""
+                        <input id="newExpiryInput" type="text" data-role="date"
+                               name="newExpiryInput" value=""
                                placeholder="Date of Expiry" data-theme="a"/>
                     </div>
                     <div class="ui-block-a">
                         <label for="newAlertSelect">Expiry Alert:</label>
                     </div>
                     <div class="ui-block-b">
-                        <select id="newAlertSelect" name="newAlertSelect" data-role="slider" data-mini="true">
+                        <select id="newAlertSelect" name="newAlertSelect" data-role="slider"
+                                data-mini="true">
                             <option value="off">No</option>
                             <option value="on" selected="">Yes</option>
                         </select>
@@ -140,7 +152,8 @@
                     <input id="newSerialInput" type="text" name="newSerialInput" value=""
                            placeholder="Serial Number"
                            data-theme="a"/>
-                    <textarea id="newNoteTextarea" rows="4" name="newNoteTextarea" placeholder="Note"></textarea>
+                    <textarea id="newNoteTextarea" rows="4" name="newNoteTextarea"
+                              placeholder="Note"></textarea>
                 </div>
                 <fieldset class="ui-grid-a">
                     <div class="ui-block-a">
@@ -160,7 +173,8 @@
     <div id="mainContentDiv">
         <ul id="categoryListview" data-role="listview" data-inset="true"
             class="ui-nodisc-icon ui-alt-icon" data-filter="true">
-            <li class="category"><a href="#" class="listProducts" id="cat0" cid="0" category="ALL">
+            <li class="categoryList"><a href="#" class="listProductLink" id="cat0" cid="0"
+                                        category="ALL">
                 <img id="img0" src="img/star-black.svg"
                      onerror="this.onerror=null;this.src='img/camera-black.svg';"/>
                 ALL</a></li>

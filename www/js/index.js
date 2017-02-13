@@ -1,7 +1,7 @@
 // region contants
 const CATEGORY_LIST_ID = '#categoryListview';
 const BUSY_DIV_ID = '#busyDiv';
-const SAVE_SETTINGS_POPUP_ID = '#saveSettingsPopup';
+const SAVE_SETTINGS_LINK_ID = '#saveSettingsLink';
 const EDIT_SETTINGS_POPUP_ID = '#editSettingsPopup';
 const BACK_LINK_ID = '#backLink';
 const ADD_PRODUCT_LINK_ID = '#addProductLink';
@@ -32,11 +32,13 @@ const CATEGORY_LIST_CLASS = '.categoryList';
 const PRODUCT_LIST_CLASS = '.productList';
 const LIST_PRODUCT_LINK_CLASS = '.listProductLink';
 const DATABASE_NAME = 'MyWarranty.db';
-const PRODUCT_TABLE_FIELDS = 'cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert,serial,note,imageFile'; // without id
-const CATEGORY_TABLE_FIELDS = 'category, imageFile'; // without id
+const PRODUCT_TABLE_FIELDS = ' cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert,serial,note,imageFile '; // without id
+const CATEGORY_TABLE_FIELDS = ' category,imageFile'; // without id
 const LOCAL_IMAGE_FOLDER = 'localImage';
 const DEFAULT_IMAGE = 'img/camera-black.svg';
 const CDVFILE_LOCATION = 'cdvfile://localhost/persistent';
+const DEVICE_DATEFORMAT = 'mm/dd/yy';
+const DB_STORE_DATEFORMAT = 'yymmdd';
 // endregion
 
 // region global variables
@@ -83,7 +85,7 @@ function getAllowAlert() {
 }
 
 
-$(SAVE_SETTINGS_POPUP_ID).click(function () {
+$(SAVE_SETTINGS_LINK_ID).click(function () {
     gLocalStorage.setItem(ALLOW_ALERT_SELECT_ID, $(ALLOW_ALERT_SELECT_ID).val());
     gLocalStorage.setItem(SHOW_EXPIRY_SELECT_ID, $(SHOW_EXPIRY_SELECT_ID).val());
     alert('Settings Saved!');
@@ -122,7 +124,7 @@ function refreshListview(listviewID) {
 
 function getCategories(transaction) {
     console.log('getCategories start...');
-    var executeQuery = 'select id, ' + CATEGORY_TABLE_FIELDS + 'from categories order by category';
+    var executeQuery = 'select id, ' + CATEGORY_TABLE_FIELDS + ' from categories order by category';
     transaction.executeSql(executeQuery, [], getCategoriesSuccess);
     console.log('getCategories population successfully.');
 };
@@ -178,17 +180,16 @@ function getProducts(transaction, cid) {
     console.log('getProducts start...');
     var executeQuery = 'select id,' + PRODUCT_TABLE_FIELDS + ' from products ';
     var queryParameters = [];
-    var addConditionConnectString = 'where';
-    if (cid != 0) {
+    var addConditionConnectString = ' where ';
+    if (cid != '0') {
         executeQuery = executeQuery + addConditionConnectString + " cid = ? ";
         queryParameters = [cid];
         addConditionConnectString = ' and ';
-    }
-    if (showEpiry = "on") {
-        var today = new Date();
-        var todayYYYYMMDD = today.format('yyyymmdd');
-        executeQuery = executeQuery + addConditionConnectString + ' expiry >= "' + todayYYYYMMDD + ' "';
-    }
+    };
+    if (getShowExpiry() == "on") {
+        var todayYYYYMMDD = $.datepicker.formatDate(DB_STORE_DATEFORMAT, new Date());
+        executeQuery = executeQuery + addConditionConnectString + ' expiry >= "' + todayYYYYMMDD + '"';
+    };
     executeQuery = executeQuery + ' order by name desc';
     transaction.executeSql(executeQuery, queryParameters, getProductsSuccess);
     console.log('getProducts population successfully.');
@@ -200,15 +201,14 @@ function getProductsSuccess(transaction, results) {
     for (var i = 0; i < len; i++) {
         var products = results.rows.item(i);
         appendToProducts(products.id, products.cid, products.name, products.vendor, products.manufacturer, products.product, products.model, products.price, products.purchase, products.expiry, products.alert, products.serial, products.note, CDVFILE_LOCATION + products.imageFile);
-    }
-    ;
+    };
     refreshListview(CATEGORY_LIST_ID);
 };
 
 function appendToProducts(id, cid, name, vendor, manufacturer, product, model, price, purchase, expiry, alert, serial, note, imageFile) {
     $(CATEGORY_LIST_ID).prepend('<li class="productList"><a href="#" class="ProductDetails" id="product' + id + '" pid="' + id + '" cid="' + cid + '">' +
         '<img id="img' + id + '" src="' + imageFile + '" onerror="this.onerror=null;this.src=\'' + DEFAULT_IMAGE + '\';" />' +
-        '<h1>' + name + '</h1><p>' + manufacturer + '</p><p>' + product + ' ' + model + '</p><p>' + purchase + ' ' + expiry + '</p></a></li>');
+        '<h1>' + name + '</h1><p>' + manufacturer + '</p><p>' + product + ' ' + model + '</p><p>' + parseDateToDisplay(purchase) + ' ' + parseDateToDisplay(expiry) + '</p></a></li>');
 };
 
 $(CATEGORY_LIST_ID).on('click', LIST_PRODUCT_LINK_CLASS, function () {
@@ -228,7 +228,6 @@ $(CATEGORY_LIST_ID).on('click', LIST_PRODUCT_LINK_CLASS, function () {
     else {
         $(ADD_PRODUCT_LINK_ID).show();
     }
-
 });
 
 // endregion
@@ -244,8 +243,8 @@ $(INSERT_PRODUCT_LINK_ID).click(function () {
     var newProduct = $(NEW_PRUDUCT_INPUT_ID).val();
     var newModel = $(NEW_MODEL_INPUT_ID).val();
     var newPrice = $(NEW_PRICE_INPUT_ID).val();
-    var newPurchase = $(NEW_PURCHASE_INPUT_ID).val();
-    var newExpiry = $(NEW_EXPIRY_INPUT_ID).val();
+    var newPurchase = parseDateToDBStore($(NEW_PURCHASE_INPUT_ID).val());
+    var newExpiry = parseDateToDBStore($(NEW_EXPIRY_INPUT_ID).val());
     var newAlert = $(NEW_ALERT_SELECT_ID).val();
     var newSerial = $(NEW_SERIAL_INPUT_ID).val();
     var newNote = $(NEW_NOTE_TEXTAREA_ID).val();
@@ -258,7 +257,7 @@ $(INSERT_PRODUCT_LINK_ID).click(function () {
     }
     var newImageFile = '/' + LOCAL_IMAGE_FOLDER + '/' + gNewImageURL;
     gDB.transaction(function (transaction) {
-        var executeQuery = "INSERT INTO products ('+PRODUCT_TABLE_FIELDS +') VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        var executeQuery = 'INSERT INTO products ('+PRODUCT_TABLE_FIELDS +') VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)';
         transaction.executeSql(executeQuery, [newcid, newName, newVendor, newManufacturer, newProduct, newModel, newPrice, newPurchase, newExpiry, newAlert, newSerial, newNote, newImageFile]
             ,
             function (transaction, result) {
@@ -274,6 +273,23 @@ $(INSERT_PRODUCT_LINK_ID).click(function () {
     $(NEW_CID_INPUT_ID).val(newcid);
 
 });
+
+function parseDateToDBStore(inputDate) {
+    if (inputDate != '')
+    {
+        return $.datepicker.formatDate(DB_STORE_DATEFORMAT, $.datepicker.parseDate(DEVICE_DATEFORMAT, inputDate))
+    }
+    return inputDate;
+}
+
+function parseDateToDisplay(inputDate) {
+    if (inputDate != '')
+    {
+        return $.datepicker.formatDate(DEVICE_DATEFORMAT, $.datepicker.parseDate(DB_STORE_DATEFORMAT, inputDate))
+    }
+    return inputDate;
+}
+
 
 $(BACK_LINK_ID).click(function () {
     $(CATEGORY_HEADER_ID).show();

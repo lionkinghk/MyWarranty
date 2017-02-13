@@ -1,298 +1,379 @@
-$(document).ready(function(){
+// region contants
+const CATEGORY_LIST_ID = '#categoryListview';
+const BUSY_DIV_ID = '#busyDiv';
+const SAVE_SETTINGS_LINK_ID = '#saveSettingsLink';
+const EDIT_SETTINGS_POPUP_ID = '#editSettingsPopup';
+const BACK_LINK_ID = '#backLink';
+const ADD_PRODUCT_LINK_ID = '#addProductLink';
+const ADD_PRODUCT_FORM_ID = '#addProductForm';
+const CATEGORY_NAME_H3_ID = '#categoryNameH3';
+const CATEGORY_HEADER_ID = '#categoryHeader';
+const PRODUCT_HEADER_ID = '#productHeader';
+const INSERT_CATEGORY_LINK_ID = '#insertCategoryLink';
+const INSERT_PRODUCT_LINK_ID = '#insertProductLink';
+const NEW_CATEGORY_INPUT_ID = '#newCategoryInput';
+const NEW_CID_INPUT_ID = '#newCIdInput';
+const NEW_IMAGE_SRC_ID = '#newImageSrc';
+const NEW_PRODUCT_IMAGE_SRC_ID = '#newProductImageSrc';
+const NEW_PURCHASE_INPUT_ID = '#newPurchaseInput';
+const NEW_EXPIRY_INPUT_ID = '#newExpiryInput';
+const NEW_NAME_INPUT_ID = '#newNameInput';
+const NEW_VENDOR_INPUT_ID = '#newVendorInput';
+const NEW_MANUFACTURER_INPUT_ID = '#newManufacturerInput';
+const NEW_PRUDUCT_INPUT_ID = '#newProductInput';
+const NEW_PRICE_INPUT_ID = '#newPriceInput';
+const NEW_MODEL_INPUT_ID = '#newModelInput';
+const NEW_ALERT_SELECT_ID = '#newAlertSelect';
+const NEW_SERIAL_INPUT_ID = '#newSerialInput';
+const NEW_NOTE_TEXTAREA_ID = '#newNoteTextarea';
+const SHOW_EXPIRY_SELECT_ID = '#showExpirySelect';
+const ALLOW_ALERT_SELECT_ID = '#allowAlertSelect';
+const CATEGORY_LIST_CLASS = '.categoryList';
+const PRODUCT_LIST_CLASS = '.productList';
+const LIST_PRODUCT_LINK_CLASS = '.listProductLink';
+const DATABASE_NAME = 'MyWarranty.db';
+const PRODUCT_TABLE_FIELDS = ' cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert,serial,note,imageFile '; // without id
+const CATEGORY_TABLE_FIELDS = ' category,imageFile'; // without id
+const LOCAL_IMAGE_FOLDER = 'localImage';
+const DEFAULT_IMAGE = 'img/camera-black.svg';
+const CDVFILE_LOCATION = 'cdvfile://localhost/persistent';
+const DEVICE_DATEFORMAT = 'mm/dd/yy';
+const DB_STORE_DATEFORMAT = 'yymmdd';
+// endregion
 
-// contants
-  var categoryListID = '#categoryList';
-  var productListID = '#productList';
-  var busyID = '#busy';
-  var localFolder = 'localImage';
-  var defaultImage = 'img/camera-black.svg';
-  var showExpiryID = "showExpiry";
-  var allowAlertID = "allowAlert";
-  var showExpirySQL = "  and expiry > ";
+// region global variables
+var gDB;
+var gLocalStorage;
+var gNewImageURL;
+// endregion
 
-// global variables
-  var myDB;
-  var myLocalStorage;
-  var newImageURL;
-  var showExpiry;
-  var allowAlert;
+// region document ready
+$(document).ready(function () {
 
-  document.addEventListener("deviceready",onDeviceReady,false);
+    document.addEventListener('deviceready', onDeviceReady, false);
+    function onDeviceReady() {
+        // application settings
+        gLocalStorage = window.localStorage;
+        loadSettings();
 
-       function onDeviceReady(){
-                // application settings
-                  myLocalStorage = window.localStorage;
-                  setSettings();
+        // database setup
+        gDB = window.sqlitePlugin.openDatabase({name: DATABASE_NAME, location: 'default'});
+        gDB.transaction(createTables, transactionError);
+        // gDB.transaction(populateTables, transactionError);
 
-                // category list populate
-                  myDB = window.sqlitePlugin.openDatabase({name: "myAssets.db", location: 'default'});
-                  myDB.transaction(createTables, transactionError);
-                  // myDB.transaction(populateTables, transactionError);
-                  myDB.transaction(getCategories, transactionError);
-                  $('#categoryHeader').show();
-                  $('#productHeader').hide();
+        // category list population
+        gDB.transaction(getCategories, transactionError);
+        $(CATEGORY_HEADER_ID).show();
+        $(PRODUCT_HEADER_ID).hide();
 
-        };
-                  
-                  function transactionError(tx, error) {
-                    $(busyID).hide();
-                    alert("Database Error: " + error);
-                  };
+    };
+});
+// endregion
 
-                  function createTables(tx){
-                    console.log("Table created start...");
-                    tx.executeSql('CREATE TABLE IF NOT EXISTS categories (id integer primary key, category text, imageFile text)');
-                    tx.executeSql('CREATE TABLE IF NOT EXISTS products (id integer primary key, cid integer, name text, vendor text, manufacturer text, product text, model text, price real, purchase text, expiry text, alert text, serial text, note text, imageFile text)');
-                    tx.executeSql('CREATE TABLE IF NOT EXISTS documents (id integer primary key, pid integer, title text, imageFile text)');
-                    console.log("Table created successfully");
-                  };
-
-                  function populateTables(tx) {
-                    console.log("Table population start...");
-                    tx.executeSql("INSERT INTO products (cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert, serial, note, imageFile) VALUES (1,'for3-1','vendor','manufacturer','product','model',100.4,'2017-01-02','2019-01-02','on','xxx-yyy-zz','this ok','img/camera-black.svg')");
-                    tx.executeSql("INSERT INTO products (cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert, serial, note, imageFile) VALUES (1,'for3-2','vendor2','manufacturer2','product2','model2',102.4,'2005-01-02','2006-01-02','off','aaa-bbb-cc','this ok','img/camera-black.svg')");
-                    console.log("Table population successfully");
-                  };
-
-function setSettings() {
-                  showExpiry = myLocalStorage.getItem(showExpiryID);
-                  allowAlert = myLocalStorage.getItem(allowAlertID);
-                  $('#showExpiry').val(showExpiry).change();
-                  $('#allowAlert').val(allowAlert).change();
+// region Settings
+function loadSettings() {
+    $(SHOW_EXPIRY_SELECT_ID).val(getShowExpiry()).change();
+    $(ALLOW_ALERT_SELECT_ID).val(getAllowAlert()).change();
 }
 
-$('#saveSettings').click(function() {
-                    myLocalStorage.setItem(allowAlertID,$('#allowAlert').val());
-                    myLocalStorage.setItem(showExpiryID,$('#showExpiry').val());
-                  showExpiry = myLocalStorage.getItem(showExpiryID);
-                  allowAlert = myLocalStorage.getItem(allowAlertID);
-                  alert('Saved!');
-                  $('#editSettings').popup("close");
+function getShowExpiry() {
+    return gLocalStorage.getItem(SHOW_EXPIRY_SELECT_ID);
+}
+
+function getAllowAlert() {
+    return gLocalStorage.getItem(ALLOW_ALERT_SELECT_ID);
+}
+
+
+$(SAVE_SETTINGS_LINK_ID).click(function () {
+    gLocalStorage.setItem(ALLOW_ALERT_SELECT_ID, $(ALLOW_ALERT_SELECT_ID).val());
+    gLocalStorage.setItem(SHOW_EXPIRY_SELECT_ID, $(SHOW_EXPIRY_SELECT_ID).val());
+    alert('Settings Saved!');
+    $(EDIT_SETTINGS_POPUP_ID).popup('close');
+});
+// endregion
+
+// region database table
+function transactionError(transaction, error) {
+    $(BUSY_DIV_ID).hide();
+    alert('Database Error: ' + error.code + '/' + error.message);
+};
+
+function createTables(transaction) {
+    console.log('Table created start...');
+    transaction.executeSql('CREATE TABLE IF NOT EXISTS categories (id INTEGER PRIMARY KEY, category TEXT, imageFile TEXT)');
+    transaction.executeSql('CREATE TABLE IF NOT EXISTS products (id INTEGER PRIMARY KEY, cid INTEGER, name TEXT, vendor TEXT, manufacturer TEXT, product TEXT, model TEXT, price REAL, purchase TEXT, expiry TEXT, alert TEXT, serial TEXT, note TEXT, imageFile TEXT)');
+    transaction.executeSql('CREATE TABLE IF NOT EXISTS documents (id INTEGER PRIMARY KEY, pid INTEGER, title TEXT, imageFile TEXT)');
+    console.log('Table created successfully');
+};
+
+function populateTables(transaction) {
+    console.log('Table population start...');
+    transaction.executeSql('INSERT INTO products (' + PRODUCT_TABLE_FIELDS + ') VALUES (1,"for3-1","vendor","manufacturer","product","model",100.4,"2017-01-02","2019-01-02","on","xxx-yyy-zz","this ok","img/camera-black.svg")');
+    transaction.executeSql('INSERT INTO products (' + PRODUCT_TABLE_FIELDS + ') VALUES (1,"for3-2","vendor2","manufacturer2","product2","model2",102.4,"2005-01-02","2006-01-02","off","aaa-bbb-cc","this ok","img/camera-black.svg")');
+    console.log('Table population successfully');
+};
+
+// endregion
+
+// region categories
+
+function refreshListview(listviewID) {
+    $(listviewID).listview('refresh');
+};
+
+function getCategories(transaction) {
+    console.log('getCategories start...');
+    var executeQuery = 'select id, ' + CATEGORY_TABLE_FIELDS + ' from categories order by category';
+    transaction.executeSql(executeQuery, [], getCategoriesSuccess);
+    console.log('getCategories population successfully.');
+};
+
+function getCategoriesSuccess(transaction, results) {
+    var length = results.rows.length;
+    for (var iCount = 0; iCount < length; iCount++) {
+        var categories = results.rows.item(iCount);
+        $(CATEGORY_LIST_ID).append(formatCategory(categories.id, categories.category, CDVFILE_LOCATION + categories.imageFile));
+    }
+    ;
+    $(BUSY_DIV_ID).hide();
+    refreshListview(CATEGORY_LIST_ID);
+};
+
+function formatCategory(id, category, imageFile) {
+    return '<li class="categoryList"><a href="#" class="listProductLink" id="cat' + id + '" cid="' + id + '" category="' + category + '">' +
+        '<img id="img' + id + '" src="' + imageFile + '" onerror="this.onerror=null;this.src=\'' + DEFAULT_IMAGE + '\';" />' +
+        category + '</a></li>';
+};
+
+$(INSERT_CATEGORY_LINK_ID).click(function () {
+    var newCategory = $(NEW_CATEGORY_INPUT_ID).val();
+    var newImage = $(NEW_IMAGE_SRC_ID).attr('src');
+    var today = new Date();
+    gNewImageURL = today.getTime() + ".jpg";
+    var lastRowID;
+    if (newImage != DEFAULT_IMAGE) {
+        movePic(newImage);
+    }
+    var newImageFile = '/' + LOCAL_IMAGE_FOLDER + '/' + gNewImageURL;
+    gDB.transaction(function (transaction) {
+        var executeQuery = 'INSERT INTO categories (' + CATEGORY_TABLE_FIELDS + ') VALUES (?,?)';
+        transaction.executeSql(executeQuery, [newCategory, newImageFile]
+            ,
+            function (transaction, result) {
+                lastRowID = result.insertId;
+                alert('Added ' + newCategory + '(' + lastRowID + ')! Click [Cancel] to close.');
+            },
+            transactionError);
+    });
+    $(CATEGORY_LIST_ID + ' li:eq(0)').after(formatCategory(lastRowID, newCategory, newImage));
+    refreshListview(CATEGORY_LIST_ID);
+    $(NEW_IMAGE_SRC_ID).attr('src', DEFAULT_IMAGE);
+    $(NEW_CATEGORY_INPUT_ID).val('');
 
 });
 
-                  function refreshListview(listID) {
-                     $(listID).listview('refresh');
-                  };
+// endregion
 
-                  function getCategories(tx) {
-                    console.log("getCategories start...");
-                    var sql = "select id, category, imageFile from categories order by category";
-                    tx.executeSql(sql, [], getCategoriesSuccess);
-                    console.log("getCategories population successfully");
-                  };
+// region products
+function getProducts(transaction, cid) {
+    console.log('getProducts start...');
+    var executeQuery = 'select id,' + PRODUCT_TABLE_FIELDS + ' from products ';
+    var queryParameters = [];
+    var addConditionConnectString = ' where ';
+    if (cid != '0') {
+        executeQuery = executeQuery + addConditionConnectString + " cid = ? ";
+        queryParameters = [cid];
+        addConditionConnectString = ' and ';
+    };
+    if (getShowExpiry() == "on") {
+        var todayYYYYMMDD = $.datepicker.formatDate(DB_STORE_DATEFORMAT, new Date());
+        executeQuery = executeQuery + addConditionConnectString + ' expiry >= "' + todayYYYYMMDD + '"';
+    };
+    executeQuery = executeQuery + ' order by name desc';
+    transaction.executeSql(executeQuery, queryParameters, getProductsSuccess);
+    console.log('getProducts population successfully.');
+};
 
-                  function getCategoriesSuccess(tx, results) {
-                    $(busyID).hide();
-                    var len = results.rows.length;
-                    for (var i=0; i<len; i++) {
-                      var categories = results.rows.item(i);
-                      $(categoryListID).append(formatCategory(categories.id,categories.category,'cdvfile://localhost/persistent' + categories.imageFile));
-                    };
-                    refreshListview(categoryListID);
-                  };
+function getProductsSuccess(transaction, results) {
+    $(BUSY_DIV_ID).hide();
+    var len = results.rows.length;
+    for (var i = 0; i < len; i++) {
+        var products = results.rows.item(i);
+        appendToProducts(products.id, products.cid, products.name, products.vendor, products.manufacturer, products.product, products.model, products.price, products.purchase, products.expiry, products.alert, products.serial, products.note, CDVFILE_LOCATION + products.imageFile);
+    };
+    refreshListview(CATEGORY_LIST_ID);
+};
 
-                  function formatCategory(id, category, imageFile){
-                     return '<li class="category"><a href="#" class="listProducts" id="cat'+id+'" cid="'+id+'" category="'+ category +'">' +
-                                             '<img id="img' + id + '" src="' + imageFile + '" onerror="this.onerror=null;this.src=\''+defaultImage+'\';" />' +
-                                             category + '</a></li>';
-                  };
+function appendToProducts(id, cid, name, vendor, manufacturer, product, model, price, purchase, expiry, alert, serial, note, imageFile) {
+    $(CATEGORY_LIST_ID).prepend('<li class="productList"><a href="#" class="ProductDetails" id="product' + id + '" pid="' + id + '" cid="' + cid + '">' +
+        '<img id="img' + id + '" src="' + imageFile + '" onerror="this.onerror=null;this.src=\'' + DEFAULT_IMAGE + '\';" />' +
+        '<h1>' + name + '</h1><p>' + manufacturer + '</p><p>' + product + ' ' + model + '</p><p>' + parseDateToDisplay(purchase) + ' ' + parseDateToDisplay(expiry) + '</p></a></li>');
+};
 
-                  $('#insertCategory').click(function(){
-                                             var newCategory=$('#newCategory').val();
-                                             var newImage=$('#newImage').attr('src');
-                                             var d = new Date();
-                                             var n = d.getTime();
-                                             newImageURL = n + ".jpg";
-                                             var lastRowID;
-                                             if (newImage != defaultImage)
-                                             {
-                                               movePic(newImage);
-                                             }
-                                             var newImageFile = '/' + localFolder + '/' + newImageURL;
-                                             myDB.transaction(function(transaction) {
-                                                              var executeQuery = "INSERT INTO categories (category, imageFile) VALUES (?,?)";
-                                                              transaction.executeSql(executeQuery, [newCategory,newImageFile]
-                                                                                     ,
-                                                                                     function(tx, result) {
-                                                                                            lastRowID = result.insertId;
-                                                                                            alert('Added ' + newCategory + '('+ lastRowID +')! Click [Cancel] to close.');
-                                                                                     },
-                                                                                     transactionError);
-                                                              });
-                                             $(categoryListID + ' li:eq(0)').after(formatCategory(lastRowID,newCategory,newImage));
-                                             refreshListview(categoryListID);
-                                             $('#newImage').attr('src',defaultImage);
-                                             $('#newCategory').val('');
-
-                   });
-
-                  function getProducts(tx, cid) {
-                    console.log("getProducts start...");
-                    if (cid == 0)
-                    {
-                      var sql = "select id,cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert,serial,note,imageFile from products where 1 = 1 order by name desc";
-                      tx.executeSql(sql, [], getProductsSuccess);
-                    }
-                    else
-                    {
-                      var sql = "select id,cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert,serial,note,imageFile from products where cid = ? order by name desc";
-                      tx.executeSql(sql, [cid], getProductsSuccess);
-                    }
-                    console.log("getProducts population successfully");
-                  };
-
-                  function getProductsSuccess(tx, results) {
-                    $(busyID).hide();
-                    var len = results.rows.length;
-                    for (var i=0; i<len; i++) {
-                      var products = results.rows.item(i);
-                      appendToProducts(products.id, products.cid,products.name,products.vendor,products.manufacturer,products.product,products.model,products.price,products.purchase,products.expiry,products.alert,products.serial,products.note, 'cdvfile://localhost/persistent' + products.imageFile);
-                    };
-                    refreshListview(categoryListID);
-                  };
-                  
-                  function appendToProducts(id, cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert,serial,note,imageFile){
-                    $(categoryListID).prepend('<li class="product"><a href="#" class="ProductDetails" id="product'+id+'" pid="'+id+'" cid="'+cid+'">' +
-                                             '<img id="img' + id + '" src="' + imageFile + '" onerror="this.onerror=null;this.src=\''+defaultImage+'\';" />' +
-                                             '<h1>'+name+'</h1><p>'+manufacturer+'</p><p>'+product+ ' ' +model+'</p><p>'+purchase + ' ' + expiry+'</p></a></li>');
-                  };
-
-                  $(categoryListID).on('click','.listProducts',function() {
-                     $('#categoryName').html($(this).attr('category'));
-                     $('.category').hide();
-                     $('#categoryHeader').hide();
-                     $('#productHeader').show();
-                     $(busyID).show();
-                     var cid = $(this).attr('cid');
-                     $('#newcid').val(cid);
-                     myDB.transaction(function(tx){getProducts(tx,cid)}, transactionError);
-                                         if (cid == 0)
-                                         {
-                                            $('#AddProductLink').hide();
-                                         }
-                                         else
-                                         {
-                                            $('#AddProductLink').show();
-                                         }
-
-                  });
-
-                  $('#insertProduct').click(function(){
-
-                                             var newcid=$('#newcid').val();
-                                             var newName=$('#newName').val();
-                                             var newVendor=$('#newVendor').val();
-                                             var newManufacturer=$('#newManufacturer').val();
-                                             var newProduct=$('#newProduct').val();
-                                             var newModel=$('#newModel').val();
-                                             var newPrice=$('#newPrice').val();
-                                             var newPurchase=$('#newPurchase').val();
-                                             var newExpiry=$('#newExpiry').val();
-                                             var newAlert=$('#newAlert').val();
-                                             var newSerial=$('#newSerial').val();
-                                             var newNote=$('#newNote').val();
-                                             var newImage=$('#newProductImage').attr('src');
-                                             var d = new Date();
-                                             var n = d.getTime();
-                                             newImageURL = n + ".jpg";
-                                             var lastRowID;
-                                             if (newImage != defaultImage)
-                                             {
-                                               movePic(newImage);
-                                             }
-                                             var newImageFile = '/' + localFolder + '/' + newImageURL;
-                                             myDB.transaction(function(transaction) {
-                                                              var executeQuery = "INSERT INTO products (cid,name,vendor,manufacturer,product,model,price,purchase,expiry,alert,serial,note,imageFile) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
-                                                              transaction.executeSql(executeQuery, [newcid,newName,newVendor,newManufacturer,newProduct,newModel,newPrice,newPurchase,newExpiry,newAlert,newSerial,newNote,newImageFile]
-                                                                                     ,
-                                                                                     function(tx, result) {
-                                                                                            lastRowID = result.insertId;
-                                                                                            alert('Added ' + newName + '('+ lastRowID +')! Click [Cancel] to close.');
-                                                                                     },
-                                                                                     transactionError);
-                                                              });
-                                             appendToProducts(lastRowID, newcid,newName,newVendor,newManufacturer,newProduct,newModel,newPrice,newPurchase,newExpiry,newAlert,newSerial,newNote, 'cdvfile://localhost/persistent' + newImageFile);
-                                             refreshListview(categoryListID);
-                                             $('#newProductImage').attr('src',defaultImage);
-                                             $('#addProductForm').trigger('reset');
-                                             $('#newcid').val(newcid);
-
-                   });
-
-                  $('#back').click(function(){
-                                    $('#categoryHeader').show();
-                                    $('#productHeader').hide();
-                                    $('.category').show();
-                                    $('.product').remove();
-                  });
-
-$( function() {
-    $( "#newPurchase" ).datepicker();
-  } );
-
-$( function() {
-    $( "#newExpiry" ).datepicker();
-  } );
-
-
-                  $('#newProductImage').click(function() {
-                                        navigator.camera.getPicture(onProductSuccess, onFail, { quality: 50,
-                                                                    destinationType: Camera.DestinationType.FILE_URI,
-                                                                    sourceType : Camera.PictureSourceType.SAVEDPHOTOALBUM,
-                                                                    allowEdit : true,
-                                                                    encodingType: Camera.EncodingType.JPEG,
-                                                                    saveToPhotoAlbum: false
-                                                                    });
-                                        });
-                  function onProductSuccess(imageData) {
-                     $('#newProductImage').attr('src',imageData);
-                   };
-
-
-                  $('#newImage').click(function() {
-                                        navigator.camera.getPicture(onSuccess, onFail, { quality: 50,
-                                                                    destinationType: Camera.DestinationType.FILE_URI,
-                                                                    sourceType : Camera.PictureSourceType.SAVEDPHOTOALBUM,
-                                                                    allowEdit : true,
-                                                                    encodingType: Camera.EncodingType.JPEG,
-                                                                    saveToPhotoAlbum: false
-                                                                    });
-                                        });
-                  function onSuccess(imageData) {
-                     $('#newImage').attr('src',imageData);
-                   };
-                  
-                  function onFail(message) {
-                    alert('Failed because: ' + message);
-                  };
-                  function movePic(file){
-                    window.resolveLocalFileSystemURI(file, resolveOnSuccess, resOnError);
-                  }
-                  
-                  //Callback function when the file system uri has been resolved
-                  function resolveOnSuccess(entry){
-                            window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fileSys) {
-                                           //The folder is created if doesn't exist
-                                           fileSys.root.getDirectory( localFolder,
-                                                                     {create:true, exclusive: false},
-                                                                     function(directory) {
-                                                                     entry.moveTo(directory, newImageURL,  successMove, resOnError);
-                                                                     },
-                                                                     resOnError);
-                                           },
-                                           resOnError);
-                  }
-                  
-                  //Callback function when the file has been moved successfully - inserting the complete path
-                  function successMove(entry) {
-                    // reaload image after save
-                  }
-                  
-                  function resOnError(error) {
-                  alert(error.code);
-                  }
-
-                  
+$(CATEGORY_LIST_ID).on('click', LIST_PRODUCT_LINK_CLASS, function () {
+    $(CATEGORY_NAME_H3_ID).html($(this).attr('category'));
+    $(CATEGORY_LIST_CLASS).hide();
+    $(CATEGORY_HEADER_ID).hide();
+    $(PRODUCT_HEADER_ID).show();
+    $(BUSY_DIV_ID).show();
+    var cid = $(this).attr('cid');
+    $(NEW_CID_INPUT_ID).val(cid);
+    gDB.transaction(function (transaction) {
+        getProducts(transaction, cid)
+    }, transactionError);
+    if (cid == 0) {
+        $(ADD_PRODUCT_LINK_ID).hide();
+    }
+    else {
+        $(ADD_PRODUCT_LINK_ID).show();
+    }
 });
+
+// endregion
+
+// region product forms
+
+$(INSERT_PRODUCT_LINK_ID).click(function () {
+
+    var newcid = $(NEW_CID_INPUT_ID).val();
+    var newName = $(NEW_NAME_INPUT_ID).val();
+    var newVendor = $(NEW_VENDOR_INPUT_ID).val();
+    var newManufacturer = $(NEW_MANUFACTURER_INPUT_ID).val();
+    var newProduct = $(NEW_PRUDUCT_INPUT_ID).val();
+    var newModel = $(NEW_MODEL_INPUT_ID).val();
+    var newPrice = $(NEW_PRICE_INPUT_ID).val();
+    var newPurchase = parseDateToDBStore($(NEW_PURCHASE_INPUT_ID).val());
+    var newExpiry = parseDateToDBStore($(NEW_EXPIRY_INPUT_ID).val());
+    var newAlert = $(NEW_ALERT_SELECT_ID).val();
+    var newSerial = $(NEW_SERIAL_INPUT_ID).val();
+    var newNote = $(NEW_NOTE_TEXTAREA_ID).val();
+    var newImage = $(NEW_PRODUCT_IMAGE_SRC_ID).attr('src');
+    var today = new Date();
+    gNewImageURL = today.getTime() + ".jpg";
+    var lastRowID;
+    if (newImage != DEFAULT_IMAGE) {
+        movePic(newImage);
+    }
+    var newImageFile = '/' + LOCAL_IMAGE_FOLDER + '/' + gNewImageURL;
+    gDB.transaction(function (transaction) {
+        var executeQuery = 'INSERT INTO products ('+PRODUCT_TABLE_FIELDS +') VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)';
+        transaction.executeSql(executeQuery, [newcid, newName, newVendor, newManufacturer, newProduct, newModel, newPrice, newPurchase, newExpiry, newAlert, newSerial, newNote, newImageFile]
+            ,
+            function (transaction, result) {
+                lastRowID = result.insertId;
+                alert('Added ' + newName + '(' + lastRowID + ')! Click [Cancel] to close.');
+            },
+            transactionError);
+    });
+    appendToProducts(lastRowID, newcid, newName, newVendor, newManufacturer, newProduct, newModel, newPrice, newPurchase, newExpiry, newAlert, newSerial, newNote, CDVFILE_LOCATION + newImageFile);
+    refreshListview(CATEGORY_LIST_ID);
+    $(NEW_PRODUCT_IMAGE_SRC_ID).attr('src', DEFAULT_IMAGE);
+    $(ADD_PRODUCT_FORM_ID).trigger('reset');
+    $(NEW_CID_INPUT_ID).val(newcid);
+
+});
+
+function parseDateToDBStore(inputDate) {
+    if (inputDate != '')
+    {
+        return $.datepicker.formatDate(DB_STORE_DATEFORMAT, $.datepicker.parseDate(DEVICE_DATEFORMAT, inputDate))
+    }
+    return inputDate;
+}
+
+function parseDateToDisplay(inputDate) {
+    if (inputDate != '')
+    {
+        return $.datepicker.formatDate(DEVICE_DATEFORMAT, $.datepicker.parseDate(DB_STORE_DATEFORMAT, inputDate))
+    }
+    return inputDate;
+}
+
+
+$(BACK_LINK_ID).click(function () {
+    $(CATEGORY_HEADER_ID).show();
+    $(PRODUCT_HEADER_ID).hide();
+    $(CATEGORY_LIST_CLASS).show();
+    $(PRODUCT_LIST_CLASS).remove();
+});
+
+$(function () {
+    $(NEW_PURCHASE_INPUT_ID).datepicker();
+});
+
+$(function () {
+    $(NEW_EXPIRY_INPUT_ID).datepicker();
+});
+
+// endregion
+
+// region Picture
+
+$(NEW_PRODUCT_IMAGE_SRC_ID).click(function () {
+    navigator.camera.getPicture(onProductSuccess, onFail, {
+        quality: 50,
+        destinationType: Camera.DestinationType.FILE_URI,
+        sourceType: Camera.PictureSourceType.SAVEDPHOTOALBUM,
+        allowEdit: true,
+        encodingType: Camera.EncodingType.JPEG,
+        saveToPhotoAlbum: false
+    });
+});
+function onProductSuccess(imageData) {
+    $(NEW_PRODUCT_IMAGE_SRC_ID).attr('src', imageData);
+};
+
+
+$(NEW_IMAGE_SRC_ID).click(function () {
+    navigator.camera.getPicture(onSuccess, onFail, {
+        quality: 50,
+        destinationType: Camera.DestinationType.FILE_URI,
+        sourceType: Camera.PictureSourceType.SAVEDPHOTOALBUM,
+        allowEdit: true,
+        encodingType: Camera.EncodingType.JPEG,
+        saveToPhotoAlbum: false
+    });
+});
+function onSuccess(imageData) {
+    $(NEW_IMAGE_SRC_ID).attr('src', imageData);
+};
+
+function onFail(message) {
+    alert('Picture/Camera failed because: ' + message);
+};
+
+// endregion
+
+// region Files
+
+function movePic(file) {
+    window.resolveLocalFileSystemURI(file, resolveOnSuccess, resolveOnError);
+}
+
+//Callback function when the file system uri has been resolved
+function resolveOnSuccess(entry) {
+    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function (fileSys) {
+            //The folder is created if doesn't exist
+            fileSys.root.getDirectory(LOCAL_IMAGE_FOLDER,
+                {create: true, exclusive: false},
+                function (directory) {
+                    entry.moveTo(directory, gNewImageURL, successMove, resolveOnError);
+                },
+                resolveOnError);
+        },
+        resolveOnError);
+}
+
+//Callback function when the file has been moved successfully - inserting the complete path
+function successMove(entry) {
+    // reaload image after save
+}
+
+function resolveOnError(error) {
+    alert("Fail to move file: " + error.code);
+}
+
+// endregion
+
 
