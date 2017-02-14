@@ -190,7 +190,7 @@ $(DELETE_CATEGORY_LINK_ID).click(function () {
          } catch(err) {
             alert('err:' + err.message);
          }
-         $('#cat'+cid).parent().remove('.categoryList');
+         $('#cat'+cid).parent().remove(CATEGORY_LIST_CLASS);
         alert('Category [' + category + '] deleted!');
         showHome();
     }
