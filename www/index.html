@@ -68,7 +68,7 @@
          data-close-btn="right" data-rel="back">
         <div style="padding:10px 10px;">
             <h3>New Category</h3>
-            <img id="newImageSrc" src=""
+            <img id="newCategoryImageSrc" class="newImageSrc" src=""
                  onerror="this.onerror=null;this.src='img/camera-black.svg';"
                  height="100px" width="100px"/>
 
@@ -93,7 +93,7 @@
                                placeholder="cid"/>
                     </div>
                     <div class="ui-block-b">
-                        <img id="newProductImageSrc" src=""
+                        <img id="newProductImageSrc" class="newImageSrc" src=""
                              onerror="this.onerror=null;this.src='img/camera-black.svg';"
                              height="50px" width="50px"/>
                     </div>
@@ -170,14 +170,41 @@
             </form>
         </div>
     </div>
+    <div id="showProductPopup" data-role="popup" data-theme="a" class="ui-corner-all"
+         data-close-btn="right" data-rel="back">
+        <div style="padding:5px 5px;">
+            <p id="productDetailsPara" class="productDetails"></p>
+            <fieldset class="ui-grid-a">
+                <div class="ui-block-a">
+                    <a href="#"
+                       class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b ui-btn-icon-left ui-icon-delete"
+                       data-rel="back">Cancel</a>
+
+                </div>
+                <div class="ui-block-b">
+                    <a href="#" id="editProductLink"
+                       class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b ui-btn-icon-left ui-icon-edit">Update</a>
+                </div>
+                <div class="ui-block-a">
+                    <a href="addDoucmentsLink"
+                       class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-b ui-btn-icon-left ui-icon-plus"
+                    >Add Documents</a>
+                </div>
+            </fieldset>
+            <table id="documentsTable" data-role="table" class="ui-responsive">
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
     <div id="mainContentDiv">
-        <ul id="categoryListview" data-role="listview" data-inset="true"
+        <ul id="dataListview" data-role="listview" data-inset="true"
             class="ui-nodisc-icon ui-alt-icon" data-filter="true">
             <li class="categoryList"><a href="#" class="listProductLink" id="cat0" cid="0"
                                         category="ALL">
                 <img id="img0" src="img/star-black.svg"
                      onerror="this.onerror=null;this.src='img/camera-black.svg';"/>
                 ALL</a></li>
+            <li><a href="#" class="deleteLink" id="deleteCategoryLink" cid="0" category="None">DELETE</a></li>
         </ul>
     </div>
     <div id="busyDiv">Loading...</div>
