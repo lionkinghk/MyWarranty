@@ -15,7 +15,7 @@ const INSERT_PRODUCT_LINK_ID = '#insertProductLink';
 const DELETE_CATEGORY_LINK_ID = '#deleteCategoryLink';
 const NEW_CATEGORY_INPUT_ID = '#newCategoryInput';
 const NEW_CID_INPUT_ID = '#newCIdInput';
-const NEW_IMAGE_SRC_ID = '#newImageSrc';
+const NEW_CATEGORY_IMAGE_SRC_ID = '#newCategoryImageSrc';
 const NEW_PRODUCT_IMAGE_SRC_ID = '#newProductImageSrc';
 const NEW_PURCHASE_INPUT_ID = '#newPurchaseInput';
 const NEW_EXPIRY_INPUT_ID = '#newExpiryInput';
@@ -72,8 +72,7 @@ $(document).ready(function () {
 
         // category list population
         gDB.transaction(getCategories, transactionError);
-        $(CATEGORY_HEADER_ID).show();
-        $(PRODUCT_HEADER_ID).hide();
+        showHome();
 
     };
 });
@@ -148,6 +147,7 @@ function getCategoriesSuccess(transaction, results) {
 };
 
 function formatCategory(id, category, imageFile) {
+    alert('format id:' +id)
     return '<li class="categoryList"><a href="#" class="listProductLink" id="cat' + id + '" cid="' + id + '" category="' + category + '">' +
         '<img id="img' + id + '" src="' + imageFile + '" onerror="this.onerror=null;this.src=\'' + DEFAULT_IMAGE + '\';" />' +
         category + '</a></li>';
@@ -155,9 +155,9 @@ function formatCategory(id, category, imageFile) {
 
 $(INSERT_CATEGORY_LINK_ID).click(function () {
     var newCategory = $(NEW_CATEGORY_INPUT_ID).val();
-    var newImage = $(NEW_IMAGE_SRC_ID).attr('src');
+    var newImage = $(NEW_CATEGORY_IMAGE_SRC_ID).attr('src');
     var today = new Date();
-    newImageURL = today.getTime() + ".jpg";
+    var newImageURL = today.getTime() + ".jpg";
     var lastRowID;
     if (newImage != DEFAULT_IMAGE) {
         copyPictureToApps(newImage, newImageURL);
@@ -169,12 +169,12 @@ $(INSERT_CATEGORY_LINK_ID).click(function () {
             ,
             function (transaction, result) {
                 lastRowID = result.insertId;
+                $(DATA_LIST_ID + ' li:eq(0)').after(formatCategory(lastRowID, newCategory, newImage));
+                refreshListview(DATA_LIST_ID);
                 alert('Added ' + newCategory + '(' + lastRowID + ')! Click [Cancel] to close.');
             },
             transactionError);
     });
-    $(DATA_LIST_ID + ' li:eq(0)').after(formatCategory(lastRowID, newCategory, newImage));
-    refreshListview(DATA_LIST_ID);
     $(NEW_IMAGE_SRC_ID).attr('src', DEFAULT_IMAGE);
     $(NEW_CATEGORY_INPUT_ID).val('');
 
@@ -183,9 +183,14 @@ $(INSERT_CATEGORY_LINK_ID).click(function () {
 $(DELETE_CATEGORY_LINK_ID).click(function () {
     var cid = $(DELETE_CATEGORY_LINK_ID).attr('cid');
     var category = $(DELETE_CATEGORY_LINK_ID).attr('category');
-    var confirmDelete = confirm('Confirm to delete category [' + category + ']' );
+    var confirmDelete = confirm('Confirm to delete category [' + category + ']('+cid+')');
     if (confirmDelete == true) {
-        transaction.executeSql("DELETE FROM categories WHERE id = ? ", [cid], transactionError);
+        try {
+         gDB.transaction(function (transaction) {transaction.executeSql('DELETE FROM categories WHERE id =  ?' , [cid]);});
+         } catch(err) {
+            alert('err:' + err.message);
+         }
+         $('#cat'+cid).parent().remove('.categoryList');
         alert('Category [' + category + '] deleted!');
         showHome();
     }
@@ -243,7 +248,8 @@ function appendToProducts(id, cid, name, vendor, manufacturer, product, model, p
 };
 
 $(DATA_LIST_ID).on('click', LIST_PRODUCT_LINK_CLASS, function () {
-    $(CATEGORY_NAME_H3_ID).html($(this).attr('category'));
+    var category = $(this).attr('category');
+    $(CATEGORY_NAME_H3_ID).html(category);
     $(CATEGORY_LIST_CLASS).hide();
     $(CATEGORY_HEADER_ID).hide();
     $(PRODUCT_HEADER_ID).show();
@@ -251,7 +257,7 @@ $(DATA_LIST_ID).on('click', LIST_PRODUCT_LINK_CLASS, function () {
     var cid = $(this).attr('cid');
     $(NEW_CID_INPUT_ID).val(cid);
     gDB.transaction(function (transaction) {
-        getProducts(transaction, cid, $(this).attr('category'))
+        getProducts(transaction, cid, category)
     }, transactionError);
     if (cid == 0) {
         $(ADD_PRODUCT_LINK_ID).hide();
@@ -319,7 +325,6 @@ function getDocumentsSuccess(transaction, results) {
 // region product forms
 
 $(INSERT_PRODUCT_LINK_ID).click(function () {
-
     var newcid = $(NEW_CID_INPUT_ID).val();
     var newName = $(NEW_NAME_INPUT_ID).val();
     var newVendor = $(NEW_VENDOR_INPUT_ID).val();
@@ -334,7 +339,7 @@ $(INSERT_PRODUCT_LINK_ID).click(function () {
     var newNote = $(NEW_NOTE_TEXTAREA_ID).val();
     var newImage = $(NEW_PRODUCT_IMAGE_SRC_ID).attr('src');
     var today = new Date();
-    newImageURL = today.getTime() + ".jpg";
+    var newImageURL = today.getTime() + ".jpg";
     var lastRowID;
     if (newImage != DEFAULT_IMAGE) {
         copyPictureToApps(newImage, newImageURL);
@@ -350,7 +355,7 @@ $(INSERT_PRODUCT_LINK_ID).click(function () {
             },
             transactionError);
     });
-    appendToProducts(lastRowID, newcid, newName, newVendor, newManufacturer, newProduct, newModel, newPrice, newPurchase, newExpiry, newAlert, newSerial, newNote, CDVFILE_LOCATION + newImageFile);
+    appendToProducts(lastRowID, newcid, newName, newVendor, newManufacturer, newProduct, newModel, newPrice, newPurchase, newExpiry, newAlert, newSerial, newNote, newImage);
     refreshListview(DATA_LIST_ID);
     $(NEW_PRODUCT_IMAGE_SRC_ID).attr('src', DEFAULT_IMAGE);
     $(ADD_PRODUCT_FORM_ID).trigger('reset');
@@ -364,6 +369,7 @@ function showHome() {
     $(CATEGORY_LIST_CLASS).show();
     $(PRODUCT_LIST_CLASS).remove();
     $(DELETE_CATEGORY_LINK_ID).hide();
+    refreshListview(DATA_LIST_ID);
 };
 
 $(BACK_LINK_ID).click(function () {
@@ -383,8 +389,9 @@ $(function () {
 // region Picture
 
 $(NEW_IMAGE_SRC_CLASS).click(function () {
+    var imageSrcId = $(this).attr('id');
     navigator.camera.getPicture(function (imageData) {
-        getPictureOnSuccess(imageData, $(this).attr('id'))
+        getPictureOnSuccess(imageData,imageSrcId)
     }, getPictureOnFail, {
         quality: 50,
         destinationType: Camera.DestinationType.FILE_URI,
@@ -396,7 +403,7 @@ $(NEW_IMAGE_SRC_CLASS).click(function () {
 });
 
 function getPictureOnSuccess(imageData, imageSrcId) {
-    $(imageSrcId).attr('src', imageData);
+    $('#'+imageSrcId).attr('src', imageData);
 };
 
 function getPictureOnFail(message) {
@@ -445,16 +452,20 @@ function copyOnError(error) {
 
 // region Utilities
 function parseDateToDBStore(inputDate) {
-    if (inputDate != '') {
+    try {
+      if (inputDate != '') {
         return $.datepicker.formatDate(DB_STORE_DATEFORMAT, $.datepicker.parseDate(DATEPICKER_DATEFORMAT, inputDate))
-    }
+      }
+    } catch(err) {}
     return inputDate;
 }
 
 function parseDateToDisplay(inputDate) {
-    if (inputDate != '') {
+    try {
+      if (inputDate != '') {
         return $.datepicker.formatDate(DATEPICKER_DATEFORMAT, $.datepicker.parseDate(DB_STORE_DATEFORMAT, inputDate))
-    }
+      }
+    } catch(err){}
     return inputDate;
 }
 // endregion
