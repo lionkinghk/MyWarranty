@@ -169,12 +169,12 @@ $(INSERT_CATEGORY_LINK_ID).click(function () {
             ,
             function (transaction, result) {
                 lastRowID = result.insertId;
+                $(DATA_LIST_ID + ' li:eq(0)').after(formatCategory(lastRowID, newCategory, newImage));
+                refreshListview(DATA_LIST_ID);
                 alert('Added ' + newCategory + '(' + lastRowID + ')! Click [Cancel] to close.');
             },
             transactionError);
     });
-    $(DATA_LIST_ID + ' li:eq(0)').after(formatCategory(lastRowID, newCategory, newImage));
-    refreshListview(DATA_LIST_ID);
     $(NEW_IMAGE_SRC_ID).attr('src', DEFAULT_IMAGE);
     $(NEW_CATEGORY_INPUT_ID).val('');
 
@@ -190,7 +190,7 @@ $(DELETE_CATEGORY_LINK_ID).click(function () {
          } catch(err) {
             alert('err:' + err.message);
          }
-         $('#cat'+cid).parent().remove('.categoryList');
+         $('#cat'+cid).parent().remove(CATEGORY_LIST_CLASS);
         alert('Category [' + category + '] deleted!');
         showHome();
     }
@@ -272,9 +272,9 @@ $(DATA_LIST_ID).on('click', LIST_PRODUCT_DETAILS_LINK_CLASS, function () {
     var pid = $(this).attr('pid');
     alert('Product Details Link clicked!');
     var executeQuery = 'SELECT id,' + PRODUCTS_TABLE_FIELDS + ' FROM products WHERE id = ? ';
-    gDB.transaction.executeSql(executeQuery, [pid], getProductDetailsSuccess);
+    gDB.transaction(function (transaction) {transaction.executeSql(executeQuery , [pid]);},getProductDetailsSuccess);
     var executeQuery = 'SELECT id,' + DOCUMENTS_TABLE_FIELDS + ' FROM documents WHERE pid = ? ';
-    gDB.transaction.executeSql(executeQuery, [pid], getDocumentsSuccess);
+    gDB.transaction(function (transaction) {transaction.executeSql(executeQuery , [pid]);},getDocumentsSuccess);
     $(SHOW_PRODUCT_POPUP_ID).popup('open');
 
 });

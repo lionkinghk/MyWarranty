@@ -147,7 +147,6 @@ function getCategoriesSuccess(transaction, results) {
 };
 
 function formatCategory(id, category, imageFile) {
-    alert('format id:' +id)
     return '<li class="categoryList"><a href="#" class="listProductLink" id="cat' + id + '" cid="' + id + '" category="' + category + '">' +
         '<img id="img' + id + '" src="' + imageFile + '" onerror="this.onerror=null;this.src=\'' + DEFAULT_IMAGE + '\';" />' +
         category + '</a></li>';
@@ -272,9 +271,9 @@ $(DATA_LIST_ID).on('click', LIST_PRODUCT_DETAILS_LINK_CLASS, function () {
     var pid = $(this).attr('pid');
     alert('Product Details Link clicked!');
     var executeQuery = 'SELECT id,' + PRODUCTS_TABLE_FIELDS + ' FROM products WHERE id = ? ';
-    gDB.transaction.executeSql(executeQuery, [pid], getProductDetailsSuccess);
+    gDB.transaction(function (transaction) {transaction.executeSql(executeQuery , [pid]);},getProductDetailsSuccess);
     var executeQuery = 'SELECT id,' + DOCUMENTS_TABLE_FIELDS + ' FROM documents WHERE pid = ? ';
-    gDB.transaction.executeSql(executeQuery, [pid], getDocumentsSuccess);
+    gDB.transaction(function (transaction) {transaction.executeSql(executeQuery , [pid]);},getDocumentsSuccess);
     $(SHOW_PRODUCT_POPUP_ID).popup('open');
 
 });
