@@ -1,3 +1,5 @@
+// "use strict";
+
 // region contants
 const DATA_LIST_ID = '#dataListview';
 const BUSY_DIV_ID = '#busyDiv';
@@ -37,6 +39,8 @@ const CATEGORY_LIST_CLASS = '.categoryList';
 const PRODUCT_LIST_CLASS = '.productList';
 const LIST_PRODUCT_LINK_CLASS = '.listProductLink';
 const LIST_PRODUCT_DETAILS_LINK_CLASS = '.listProductDetails';
+const CATEGORY_IMG_ID_PREFIX = 'categoryImg';
+const PRODUCT_IMG_ID_PREFIX = 'productImg';
 const DATABASE_NAME = 'MyWarranty.db';
 const TABLES_CREATE_QUERY = ['CREATE TABLE IF NOT EXISTS categories (id INTEGER PRIMARY KEY, category TEXT, imageFile TEXT)',
     'CREATE TABLE IF NOT EXISTS products (id INTEGER PRIMARY KEY, cid INTEGER, name TEXT, vendor TEXT, manufacturer TEXT, product TEXT, model TEXT, price REAL, purchase TEXT, expiry TEXT, alert TEXT, serial TEXT, note TEXT, imageFile TEXT)',
@@ -73,7 +77,6 @@ $(document).ready(function () {
         // category list population
         gDB.transaction(getCategories, transactionError);
         showHome();
-
     };
 });
 // endregion
@@ -93,10 +96,14 @@ function getAllowAlert() {
 }
 
 $(SAVE_SETTINGS_LINK_ID).click(function () {
-    gLocalStorage.setItem(ALLOW_ALERT_SELECT_ID, $(ALLOW_ALERT_SELECT_ID).val());
-    gLocalStorage.setItem(SHOW_EXPIRY_SELECT_ID, $(SHOW_EXPIRY_SELECT_ID).val());
-    alert('Settings Saved!');
-    $(EDIT_SETTINGS_POPUP_ID).popup('close');
+    try {
+        gLocalStorage.setItem(ALLOW_ALERT_SELECT_ID, $(ALLOW_ALERT_SELECT_ID).val());
+        gLocalStorage.setItem(SHOW_EXPIRY_SELECT_ID, $(SHOW_EXPIRY_SELECT_ID).val());
+        alert('Settings Saved!');
+        $(EDIT_SETTINGS_POPUP_ID).popup('close');
+    } catch (error) {
+        alert('This:' + $(this) + '; Error:' + error.message);
+    }
 });
 // endregion
 
@@ -107,49 +114,68 @@ function transactionError(transaction, error) {
 };
 
 function createTables(transaction) {
-    console.log('Table created start...');
-    TABLES_CREATE_QUERY.forEach(function (query) {
-        transaction.executeSql(query);
-    });
-    console.log('Table created successfully');
+    try {
+        console.log('Table created start...');
+        TABLES_CREATE_QUERY.forEach(function (query) {
+            transaction.executeSql(query);
+        });
+        console.log('Table created successfully');
+    } catch (error) {
+        alert('This:' + arguments.callee.name + '; Error:' + error.message);
+    }
 };
 
 function populateTables(transaction) {
-    console.log('Table population start...');
-    transaction.executeSql('INSERT INTO documents (' + DOCUMENTS_TABLE_FIELDS + ') VALUES (1,"for3-1","img/camera-black.svg")');
-    transaction.executeSql('INSERT INTO documents (' + DOCUMENTS_TABLE_FIELDS + ') VALUES (1,"for3-2","img/camera-black.svg")');
-    console.log('Table population successfully');
+    try {
+        console.log('Table population start...');
+        transaction.executeSql('INSERT INTO documents (' + DOCUMENTS_TABLE_FIELDS + ') VALUES (1,"for3-1","img/camera-black.svg")');
+        transaction.executeSql('INSERT INTO documents (' + DOCUMENTS_TABLE_FIELDS + ') VALUES (1,"for3-2","img/camera-black.svg")');
+        console.log('Table population successfully');
+    } catch (error) {
+        alert('This:' + arguments.callee.name + '; Error:' + error.message);
+    }
 };
-
 // endregion
 
 // region categories
-
 function refreshListview(listviewID) {
     $(listviewID).listview('refresh');
 };
 
 function getCategories(transaction) {
-    console.log('getCategories start...');
-    var executeQuery = 'SELECT id, ' + CATEGORIES_TABLE_FIELDS + ' FROM categories ORDER BY category';
-    transaction.executeSql(executeQuery, [], getCategoriesSuccess);
-    console.log('getCategories population successfully.');
+    try {
+        console.log('getCategories start...');
+        var executeQuery = 'SELECT id, ' + CATEGORIES_TABLE_FIELDS + ' FROM categories ORDER BY category';
+        transaction.executeSql(executeQuery, [], getCategoriesSuccess);
+        console.log('getCategories population successfully.');
+    } catch (error) {
+        alert('This:' + arguments.callee.name + '; Error:' + error.message);
+    }
 };
 
 function getCategoriesSuccess(transaction, results) {
-    var length = results.rows.length;
-    for (var iCount = 0; iCount < length; iCount++) {
-        var categories = results.rows.item(iCount);
-        $(DATA_LIST_ID).append(formatCategory(categories.id, categories.category, CDVFILE_LOCATION + categories.imageFile));
+    try {
+        var length = results.rows.length;
+        for (var iCount = 0; iCount < length; iCount++) {
+            var categories = results.rows.item(iCount);
+            $(DATA_LIST_ID).append(formatCategory(categories.id, categories.category, CDVFILE_LOCATION + categories.imageFile));
+        }
+        $(BUSY_DIV_ID).hide();
+        refreshListview(DATA_LIST_ID);
+    } catch (error) {
+        alert('This:' + arguments.callee.name + '; Error:' + error.message);
     }
-    $(BUSY_DIV_ID).hide();
-    refreshListview(DATA_LIST_ID);
 };
 
 function formatCategory(id, category, imageFile) {
-    return '<li class="categoryList"><a href="#" class="listProductLink" id="cat' + id + '" cid="' + id + '" category="' + category + '">' +
-        '<img id="img' + id + '" src="' + imageFile + '" onerror="this.onerror=null;this.src=\'' + DEFAULT_IMAGE + '\';" />' +
-        category + '</a></li>';
+    try {
+        return '<li class="categoryList"><a href="#" class="listProductLink" id="cat' + id + '" cid="' + id + '" category="' + category + '">' +
+            '<img id="' + CATEGORY_IMG_ID_PREFIX + id + '" src="' + imageFile + '" onerror="this.onerror=null;this.src=\'' + DEFAULT_IMAGE + '\';" />' +
+            category + '</a></li>';
+    } catch (error) {
+        alert('This:' + arguments.callee.name + '; Error:' + error.message);
+    }
+
 };
 
 $(INSERT_CATEGORY_LINK_ID).click(function () {
@@ -157,172 +183,215 @@ $(INSERT_CATEGORY_LINK_ID).click(function () {
     var newImage = $(NEW_CATEGORY_IMAGE_SRC_ID).attr('src');
     var today = new Date();
     var newImageURL = today.getTime() + ".jpg";
-    var lastRowID;
-    if (newImage != DEFAULT_IMAGE) {
-        copyPictureToApps(newImage, newImageURL);
+    try {
+        if (newImage != DEFAULT_IMAGE) {
+            copyPictureToApps(newImage, newImageURL);
+        }
+        var newImageFile = '/' + LOCAL_IMAGE_FOLDER + '/' + newImageURL;
+        gDB.transaction(function (transaction) {
+            var executeQuery = 'INSERT INTO categories (' + CATEGORIES_TABLE_FIELDS + ') VALUES (?,?)';
+            transaction.executeSql(executeQuery, [newCategory, newImageFile]
+                ,
+                function (transaction, result) {
+                    var lastRowID = result.insertId;
+                    $(DATA_LIST_ID + ' li:eq(0)').after(formatCategory(lastRowID, newCategory, newImage));
+                    refreshListview(DATA_LIST_ID);
+                    alert('Added ' + newCategory + '(' + lastRowID + ')! Click [Cancel] to close.');
+                    $(NEW_IMAGE_SRC_ID).attr('src', DEFAULT_IMAGE);
+                    $(NEW_CATEGORY_INPUT_ID).val('');
+                },
+                transactionError);
+        });
+    } catch (error) {
+        alert('This:' + $(this) + '; Error:' + error.message);
     }
-    var newImageFile = '/' + LOCAL_IMAGE_FOLDER + '/' + newImageURL;
-    gDB.transaction(function (transaction) {
-        var executeQuery = 'INSERT INTO categories (' + CATEGORIES_TABLE_FIELDS + ') VALUES (?,?)';
-        transaction.executeSql(executeQuery, [newCategory, newImageFile]
-            ,
-            function (transaction, result) {
-                lastRowID = result.insertId;
-                $(DATA_LIST_ID + ' li:eq(0)').after(formatCategory(lastRowID, newCategory, newImage));
-                refreshListview(DATA_LIST_ID);
-                alert('Added ' + newCategory + '(' + lastRowID + ')! Click [Cancel] to close.');
-            },
-            transactionError);
-    });
-    $(NEW_IMAGE_SRC_ID).attr('src', DEFAULT_IMAGE);
-    $(NEW_CATEGORY_INPUT_ID).val('');
-
 });
 
 $(DELETE_CATEGORY_LINK_ID).click(function () {
     var cid = $(DELETE_CATEGORY_LINK_ID).attr('cid');
     var category = $(DELETE_CATEGORY_LINK_ID).attr('category');
-    var confirmDelete = confirm('Confirm to delete category [' + category + ']('+cid+')');
+    var imgSrc = $('#' + CATEGORY_IMG_ID_PREFIX + cid).attr('src');
+    var confirmDelete = confirm('Confirm to delete category [' + category + '](' + cid + ')');
     if (confirmDelete == true) {
         try {
-         gDB.transaction(function (transaction) {transaction.executeSql('DELETE FROM categories WHERE id =  ?' , [cid]);});
-         } catch(err) {
-            alert('err:' + err.message);
-         }
-         $('#cat'+cid).parent().remove(CATEGORY_LIST_CLASS);
-        alert('Category [' + category + '] deleted!');
-        showHome();
+            gDB.transaction(function (transaction) {
+                transaction.executeSql('DELETE FROM categories WHERE id =  ?', [cid]);
+            });
+            $('#cat' + cid).parent().remove(CATEGORY_LIST_CLASS);
+            // delete image file if not default image
+            if (imgSrc != DEFAULT_IMAGE)
+            {
+                deleteFileFromApp(imgSrc);
+            }
+            alert('Category [' + category + '] deleted!');
+        } catch (error) {
+            alert('Error:' + error.message);
+        } finally {
+            showHome();
+        }
+        ;
     }
+    ;
 });
 
-function showDeleteCategoryLink(cid,category) {
-    $(DELETE_CATEGORY_LINK_ID).attr('cid', cid);
-    $(DELETE_CATEGORY_LINK_ID).attr('category', category);
-    $(DELETE_CATEGORY_LINK_ID).show();
+function showDeleteCategoryLink(cid, category) {
+    try {
+        $(DELETE_CATEGORY_LINK_ID).attr('cid', cid);
+        $(DELETE_CATEGORY_LINK_ID).attr('category', category);
+        $(DELETE_CATEGORY_LINK_ID).show();
+    } catch (error) {
+        alert('This:' + arguments.callee.name + '; Error:' + error.message);
+    }
 }
-
 // endregion
 
 // region products
 function getProducts(transaction, cid, category) {
-    console.log('getProducts start...');
-    showDeleteCategoryLink(cid,category);
-    var executeQuery = 'SELECT id,' + PRODUCTS_TABLE_FIELDS + ' FROM products ';
-    var queryParameters = [];
-    var addConditionConnectString = ' WHERE ';
-    if (cid != '0') {
-        executeQuery = executeQuery + addConditionConnectString + " cid = ? ";
-        queryParameters = [cid];
-        addConditionConnectString = ' AND ';
+    try {
+        console.log('getProducts start...');
+        showDeleteCategoryLink(cid, category);
+        var executeQuery = 'SELECT id,' + PRODUCTS_TABLE_FIELDS + ' FROM products ';
+        var queryParameters = [];
+        var addConditionConnectString = ' WHERE ';
+        if (cid != '0') {
+            executeQuery = executeQuery + addConditionConnectString + " cid = ? ";
+            queryParameters = [cid];
+            addConditionConnectString = ' AND ';
+        }
+        ;
+        if (getShowExpiry() == "off") {
+            var todayYYYYMMDD = $.datepicker.formatDate(DB_STORE_DATEFORMAT, new Date());
+            executeQuery = executeQuery + addConditionConnectString + ' expiry >= "' + todayYYYYMMDD + '"';
+        }
+        ;
+        executeQuery = executeQuery + ' ORDER BY name desc';
+        transaction.executeSql(executeQuery, queryParameters, getProductsSuccess);
+        console.log('getProducts population successfully.');
+    } catch (error) {
+        alert('This:' + arguments.callee.name + '; Error:' + error.message);
     }
-    ;
-    if (getShowExpiry() == "off") {
-        var todayYYYYMMDD = $.datepicker.formatDate(DB_STORE_DATEFORMAT, new Date());
-        executeQuery = executeQuery + addConditionConnectString + ' expiry >= "' + todayYYYYMMDD + '"';
-    }
-    ;
-    executeQuery = executeQuery + ' ORDER BY name desc';
-    transaction.executeSql(executeQuery, queryParameters, getProductsSuccess);
-    console.log('getProducts population successfully.');
 };
 
 function getProductsSuccess(transaction, results) {
-    $(BUSY_DIV_ID).hide();
-    var length = results.rows.length;
-    if (length > 0) {
-        $(DELETE_CATEGORY_LINK_ID).hide();
-        for (var i = 0; i < length; i++) {
-            var products = results.rows.item(i);
-            appendToProducts(products.id, products.cid, products.name, products.vendor, products.manufacturer, products.product, products.model, products.price, products.purchase, products.expiry, products.alert, products.serial, products.note, CDVFILE_LOCATION + products.imageFile);
+    try {
+        $(BUSY_DIV_ID).hide();
+        var length = results.rows.length;
+        if (length > 0) {
+            $(DELETE_CATEGORY_LINK_ID).hide();
+            for (var i = 0; i < length; i++) {
+                var products = results.rows.item(i);
+                appendToProducts(products.id, products.cid, products.name, products.vendor, products.manufacturer, products.product, products.model, products.price, products.purchase, products.expiry, products.alert, products.serial, products.note, CDVFILE_LOCATION + products.imageFile);
+            }
         }
+        ;
+        refreshListview(DATA_LIST_ID);
+    } catch (error) {
+        alert('This:' + arguments.callee.name + '; Error:' + error.message);
     }
-    ;
-    refreshListview(DATA_LIST_ID);
 };
 
 function appendToProducts(id, cid, name, vendor, manufacturer, product, model, price, purchase, expiry, alert, serial, note, imageFile) {
-    $(DATA_LIST_ID).prepend('<li class="productList"><a href="#" class="listProductDetails" id="product' + id + '" pid="' + id + '" cid="' + cid  + '" ">' +
-        '<img id="img' + id + '" src="' + imageFile + '" onerror="this.onerror=null;this.src=\'' + DEFAULT_IMAGE + '\';" />' +
-        '<h1>' + name + '</h1><p>' + manufacturer + '</p><p>' + product + ' ' + model + '</p><p>' + parseDateToDisplay(purchase) + ' ' + parseDateToDisplay(expiry) + '</p></a></li>');
+    try {
+        $(DATA_LIST_ID).prepend('<li class="productList"><a href="#" class="listProductDetails" id="product' + id + '" pid="' + id + '" cid="' + cid + '" ">' +
+            '<img id="' + PRODUCT_IMG_ID_PREFIX + id + '" src="' + imageFile + '" onerror="this.onerror=null;this.src=\'' + DEFAULT_IMAGE + '\';" />' +
+            '<h1>' + name + '</h1><p>' + manufacturer + '</p><p>' + product + ' ' + model + '</p><p>' + parseDateToDisplay(purchase) + ' ' + parseDateToDisplay(expiry) + '</p></a></li>');
+    } catch (error) {
+        alert('This:' + arguments.callee.name + '; Error:' + error.message);
+    }
 };
 
 $(DATA_LIST_ID).on('click', LIST_PRODUCT_LINK_CLASS, function () {
     var category = $(this).attr('category');
-    $(CATEGORY_NAME_H3_ID).html(category);
-    $(CATEGORY_LIST_CLASS).hide();
-    $(CATEGORY_HEADER_ID).hide();
-    $(PRODUCT_HEADER_ID).show();
-    $(BUSY_DIV_ID).show();
-    var cid = $(this).attr('cid');
-    $(NEW_CID_INPUT_ID).val(cid);
-    gDB.transaction(function (transaction) {
-        getProducts(transaction, cid, category)
-    }, transactionError);
-    if (cid == 0) {
-        $(ADD_PRODUCT_LINK_ID).hide();
-    }
-    else {
-        $(ADD_PRODUCT_LINK_ID).show();
+    try {
+        $(CATEGORY_NAME_H3_ID).html(category);
+        $(CATEGORY_LIST_CLASS).hide();
+        $(CATEGORY_HEADER_ID).hide();
+        $(PRODUCT_HEADER_ID).show();
+        $(BUSY_DIV_ID).show();
+        var cid = $(this).attr('cid');
+        $(NEW_CID_INPUT_ID).val(cid);
+        gDB.transaction(function (transaction) {
+            getProducts(transaction, cid, category)
+        }, transactionError);
+        if (cid == 0) {
+            $(ADD_PRODUCT_LINK_ID).hide();
+        }
+        else {
+            $(ADD_PRODUCT_LINK_ID).show();
+        }
+    } catch (error) {
+        alert('This:' + $(this) + '; Error:' + error.message);
     }
 });
 
 $(DATA_LIST_ID).on('click', LIST_PRODUCT_DETAILS_LINK_CLASS, function () {
     var category = $(CATEGORY_NAME_H3_ID).html();
     var pid = $(this).attr('pid');
-    alert('Product Details Link clicked!');
-    var executeQuery = 'SELECT id,' + PRODUCTS_TABLE_FIELDS + ' FROM products WHERE id = ? ';
-    gDB.transaction(function (transaction) {transaction.executeSql(executeQuery , [pid]);},getProductDetailsSuccess);
-    var executeQuery = 'SELECT id,' + DOCUMENTS_TABLE_FIELDS + ' FROM documents WHERE pid = ? ';
-    gDB.transaction(function (transaction) {transaction.executeSql(executeQuery , [pid]);},getDocumentsSuccess);
-    $(SHOW_PRODUCT_POPUP_ID).popup('open');
-
+    try {
+        alert('Product Details Link clicked!');
+        var executeQuery = 'SELECT id,' + PRODUCTS_TABLE_FIELDS + ' FROM products WHERE id = ? ';
+        gDB.transaction(function (transaction) {
+            transaction.executeSql(executeQuery, [pid]);
+        }, getProductDetailsSuccess);
+        var executeQuery = 'SELECT id,' + DOCUMENTS_TABLE_FIELDS + ' FROM documents WHERE pid = ? ';
+        gDB.transaction(function (transaction) {
+            transaction.executeSql(executeQuery, [pid]);
+        }, getDocumentsSuccess);
+    } catch (error) {
+        alert('This:' + $(this) + '; Error:' + error.message);
+    }
 });
 
 function getProductDetailsSuccess(transaction, results) {
-    var product = results.rows.item(0);
-    var html ='<img src="' + product.Imagefile +'">';
-        html =+ "name:" + product.name + "</br>";
-    html =+ "vendor:" + product.vendor + "</br>";
-    html =+ "manufacturer:" + product.manufacturer + "</br>";
-    html =+ "product:" + product.product + "</br>";
-    html =+ "price:" + product.price + "</br>";
-    html =+ "purchase:" + product.purchase + "</br>";
-    html =+ "expiry:" + product.expiry + "</br>";
-    html =+ "alert:" + product.alert + "</br>";
-    html =+ "serial:" + product.serial + "</br>";
-    html =+ "note:" + product.note + "</br>";
-    alert('html:' + html);
-    $(PRODUCT_DETAILS_PARA_ID).html(html);
+    try {
+        var product = results.rows.item(0);
+        var html = '<img src="' + product.Imagefile + '">';
+        html = +"name:" + product.name + "</br>";
+        html = +"vendor:" + product.vendor + "</br>";
+        html = +"manufacturer:" + product.manufacturer + "</br>";
+        html = +"product:" + product.product + "</br>";
+        html = +"price:" + product.price + "</br>";
+        html = +"purchase:" + product.purchase + "</br>";
+        html = +"expiry:" + product.expiry + "</br>";
+        html = +"alert:" + product.alert + "</br>";
+        html = +"serial:" + product.serial + "</br>";
+        html = +"note:" + product.note + "</br>";
+        alert('html:' + html);
+        $(PRODUCT_DETAILS_PARA_ID).html(html);
+    } catch (error) {
+        alert('This:' + arguments.callee.name + '; Error:' + error.message);
+    }
 }
 
 function getDocumentsSuccess(transaction, results) {
-    var length = results.rows.length;
-    const classBlock = ['ui-block-a','ui-block-b','ui-block-c','ui-block-d','ui-block-e'];
-    var htmlTable = '<tr>';
-    if (length > 0) {
-        for (var iRow = 0; iRow < length; iRow++) {
-            var document = results.rows.item(iRow);
-            htmlTable =+ '<td>' + '<img src="' + document.Imagefile +'" id="'+ document.id+ '" ></br>' + document.title + '</td>';
-            if ((iRow % 5) == 0)
-            {
-                htmlTable =+ '</tr>';        
+    try {
+        var length = results.rows.length;
+        const classBlock = ['ui-block-a', 'ui-block-b', 'ui-block-c', 'ui-block-d', 'ui-block-e'];
+        var htmlTable = '<tr>';
+        if (length > 0) {
+            for (var iRow = 0; iRow < length; iRow++) {
+                var document = results.rows.item(iRow);
+                htmlTable = +'<td>' + '<img src="' + document.Imagefile + '" id="' + document.id + '" ></br>' + document.title + '</td>';
+                if ((iRow % 5) == 0) {
+                    htmlTable = +'</tr>';
+                }
             }
         }
+        if ((length % 5) != 0) {
+            htmlTable = +'</tr>';
+        }
+        ;
+        alert('htmlTable:' + htmlTable);
+        $(DOCUMENTS_TABLE_ID).empty();
+        $(DOCUMENTS_TABLE_ID + ' tbody').append(htmlTable);
+        $(SHOW_PRODUCT_POPUP_ID).popup('open');
+    } catch (error) {
+        alert('This:' + arguments.callee.name + '; Error:' + error.message);
     }
-    if ((length % 5) != 0) {
-        htmlTable =+ '</tr>';
-    }
-    ;
-    alert('htmlTable:' + htmlTable);
-    $(DOCUMENTS_TABLE_ID).empty();
-    $(DOCUMENTS_TABLE_ID + ' tbody' ).append(htmlTable);
 }
-
-
 // endregion
 
 // region product forms
-
 $(INSERT_PRODUCT_LINK_ID).click(function () {
     var newcid = $(NEW_CID_INPUT_ID).val();
     var newName = $(NEW_NAME_INPUT_ID).val();
@@ -339,40 +408,50 @@ $(INSERT_PRODUCT_LINK_ID).click(function () {
     var newImage = $(NEW_PRODUCT_IMAGE_SRC_ID).attr('src');
     var today = new Date();
     var newImageURL = today.getTime() + ".jpg";
-    var lastRowID;
-    if (newImage != DEFAULT_IMAGE) {
-        copyPictureToApps(newImage, newImageURL);
+    try {
+        if (newImage != DEFAULT_IMAGE) {
+            copyPictureToApps(newImage, newImageURL);
+        }
+        var newImageFile = '/' + LOCAL_IMAGE_FOLDER + '/' + newImageURL;
+        gDB.transaction(function (transaction) {
+            var executeQuery = 'INSERT INTO products (' + PRODUCTS_TABLE_FIELDS + ') VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)';
+            transaction.executeSql(executeQuery, [newcid, newName, newVendor, newManufacturer, newProduct, newModel, newPrice, newPurchase, newExpiry, newAlert, newSerial, newNote, newImageFile]
+                ,
+                function (transaction, result) {
+                    var lastRowID = result.insertId;
+                    alert('Added ' + newName + '(' + lastRowID + ')! Click [Cancel] to close.');
+                    appendToProducts(lastRowID, newcid, newName, newVendor, newManufacturer, newProduct, newModel, newPrice, newPurchase, newExpiry, newAlert, newSerial, newNote, newImage);
+                    refreshListview(DATA_LIST_ID);
+                    $(NEW_PRODUCT_IMAGE_SRC_ID).attr('src', DEFAULT_IMAGE);
+                    $(ADD_PRODUCT_FORM_ID).trigger('reset');
+                    $(NEW_CID_INPUT_ID).val(newcid);
+                },
+                transactionError);
+        });
+    } catch (error) {
+        alert('This:' + $(this) + '; Error:' + error.message);
     }
-    var newImageFile = '/' + LOCAL_IMAGE_FOLDER + '/' + newImageURL;
-    gDB.transaction(function (transaction) {
-        var executeQuery = 'INSERT INTO products (' + PRODUCTS_TABLE_FIELDS + ') VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)';
-        transaction.executeSql(executeQuery, [newcid, newName, newVendor, newManufacturer, newProduct, newModel, newPrice, newPurchase, newExpiry, newAlert, newSerial, newNote, newImageFile]
-            ,
-            function (transaction, result) {
-                lastRowID = result.insertId;
-                alert('Added ' + newName + '(' + lastRowID + ')! Click [Cancel] to close.');
-            },
-            transactionError);
-    });
-    appendToProducts(lastRowID, newcid, newName, newVendor, newManufacturer, newProduct, newModel, newPrice, newPurchase, newExpiry, newAlert, newSerial, newNote, newImage);
-    refreshListview(DATA_LIST_ID);
-    $(NEW_PRODUCT_IMAGE_SRC_ID).attr('src', DEFAULT_IMAGE);
-    $(ADD_PRODUCT_FORM_ID).trigger('reset');
-    $(NEW_CID_INPUT_ID).val(newcid);
-
 });
 
 function showHome() {
-    $(CATEGORY_HEADER_ID).show();
-    $(PRODUCT_HEADER_ID).hide();
-    $(CATEGORY_LIST_CLASS).show();
-    $(PRODUCT_LIST_CLASS).remove();
-    $(DELETE_CATEGORY_LINK_ID).hide();
-    refreshListview(DATA_LIST_ID);
+    try {
+        $(CATEGORY_HEADER_ID).show();
+        $(PRODUCT_HEADER_ID).hide();
+        $(CATEGORY_LIST_CLASS).show();
+        $(PRODUCT_LIST_CLASS).remove();
+        $(DELETE_CATEGORY_LINK_ID).hide();
+        refreshListview(DATA_LIST_ID);
+    } catch (error) {
+        alert('This:' + arguments.callee.name + '; Error:' + error.message);
+    }
 };
 
 $(BACK_LINK_ID).click(function () {
-    showHome();
+    try {
+        showHome();
+    } catch (error) {
+        alert('This:' + $(this) + '; Error:' + error.message);
+    }
 });
 
 $(function () {
@@ -389,82 +468,99 @@ $(function () {
 
 $(NEW_IMAGE_SRC_CLASS).click(function () {
     var imageSrcId = $(this).attr('id');
-    navigator.camera.getPicture(function (imageData) {
-        getPictureOnSuccess(imageData,imageSrcId)
-    }, getPictureOnFail, {
-        quality: 50,
-        destinationType: Camera.DestinationType.FILE_URI,
-        sourceType: Camera.PictureSourceType.SAVEDPHOTOALBUM,
-        allowEdit: true,
-        encodingType: Camera.EncodingType.JPEG,
-        saveToPhotoAlbum: false
-    });
+    try {
+        navigator.camera.getPicture(function (imageData) {
+            getPictureOnSuccess(imageData, imageSrcId)
+        }, getPictureOnFail, {
+            quality: 50,
+            destinationType: Camera.DestinationType.FILE_URI,
+            sourceType: Camera.PictureSourceType.SAVEDPHOTOALBUM,
+            allowEdit: true,
+            encodingType: Camera.EncodingType.JPEG,
+            saveToPhotoAlbum: false
+        });
+
+    } catch (error) {
+        alert('This:' + $(this) + '; Error:' + error.message);
+    }
 });
 
 function getPictureOnSuccess(imageData, imageSrcId) {
-    $('#'+imageSrcId).attr('src', imageData);
+    $('#' + imageSrcId).attr('src', imageData);
 };
 
 function getPictureOnFail(message) {
     alert('Picture/Camera failed because: ' + message);
 };
-
 // endregion
 
 // region Files
 
 function copyPictureToApps(file, newImageURL) {
-    window.resolveLocalFileSystemURI(file, function (entry) {
-        resolveOnSuccess(entry, newImageURL)
-    }, resolveOnError);
+    try {
+        window.resolveLocalFileSystemURI(file, function (entry) {
+            resolveOnSuccess(entry, newImageURL)
+        }, fileHandleOnError);
+    } catch (error) {
+        alert('This:' + arguments.callee.name + '; Error:' + error.message);
+    }
 }
 
 //Callback function when the file system uri has been resolved
 function resolveOnSuccess(entry, newImageURL) {
-    window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function (fileSys) {
-            //The folder is created if doesn't exist
-            fileSys.root.getDirectory(LOCAL_IMAGE_FOLDER,
-                {create: true, exclusive: false},
-                function (directory) {
-                    entry.moveTo(directory, newImageURL, copyOnSuccess, copyOnError);
-                },
-                resolveOnError);
-        },
-        resolveOnError);
+    try {
+        window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function (fileSys) {
+                //The folder is created if doesn't exist
+                fileSys.root.getDirectory(LOCAL_IMAGE_FOLDER,
+                    {create: true, exclusive: false},
+                    function (directory) {
+                        entry.copyTo(directory, newImageURL, fileHandleOnSuccess, fileHandleOnError);
+                    },
+                    resolveOnError);
+            },
+            resolveOnError);
+    } catch (error) {
+        alert('This:' + arguments.callee.name + '; Error:' + error.message);
+    }
+}
+
+function deleteFileFromApp(file){
+
+    fileSystem.root.getFile(file, {create: false, exclusive: false}, gotRemoveFileEntry, fileHandleOnError);
+}
+
+function gotRemoveFileEntry(entry){
+    entry.remove(fileHandleOnSuccess, fileHandleOnError);
 }
 
 //Callback function when the file has been moved successfully - inserting the complete path
-function copyOnSuccess(entry) {
+function fileHandleOnSuccess(entry) {
     // reaload image after save
 }
 
-function resolveOnError(error) {
-    alert("Fail to resolve file: " + error.code);
+function fileHandleOnError(error) {
+    alert("Fail to handle file: " + error.code);
 }
-
-function copyOnError(error) {
-    alert("Fail to copy file: " + error.code);
-}
-
-
 // endregion
 
 // region Utilities
 function parseDateToDBStore(inputDate) {
     try {
-      if (inputDate != '') {
-        return $.datepicker.formatDate(DB_STORE_DATEFORMAT, $.datepicker.parseDate(DATEPICKER_DATEFORMAT, inputDate))
-      }
-    } catch(err) {}
+        if (inputDate != '') {
+            return $.datepicker.formatDate(DB_STORE_DATEFORMAT, $.datepicker.parseDate(DATEPICKER_DATEFORMAT, inputDate))
+        }
+    } catch (error) {
+    }
     return inputDate;
 }
 
 function parseDateToDisplay(inputDate) {
     try {
-      if (inputDate != '') {
-        return $.datepicker.formatDate(DATEPICKER_DATEFORMAT, $.datepicker.parseDate(DB_STORE_DATEFORMAT, inputDate))
-      }
-    } catch(err){}
+        if (inputDate != '') {
+            return $.datepicker.formatDate(DATEPICKER_DATEFORMAT, $.datepicker.parseDate(DB_STORE_DATEFORMAT, inputDate))
+        }
+    } catch (error) {
+    }
     return inputDate;
 }
 // endregion
